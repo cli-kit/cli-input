@@ -44,7 +44,7 @@ var Prompt = function(options, rl) {
 
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
-    ':name :message :delimiter'
+    ':name :delimiter :message'
 
   this.options = options;
 }
