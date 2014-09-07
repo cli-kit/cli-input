@@ -17,14 +17,21 @@ var Prompt = function(options) {
   options.replace = options.replace || '*';
   options.native = options.native !== undefined ? options.native : {};
   options.restore = options.restore !== undefined ? options.restore : true;
+  options.rl = options.rl || {};
+  options.rl.completer = options.rl.completer || options.completer;
   this.options = options;
 }
 
 util.inherits(Prompt, events.EventEmitter);
 
 Prompt.prototype.merge = function(options) {
+  console.dir(this.options);
+  var rl = this.options.rl;
+  delete this.options.rl;
   var o = merge(this.options, {});
-  return merge(options, o, null, true);
+  o = merge(options, o, null, true);
+  o.rl = rl;
+  return o;
 }
 
 Prompt.prototype.getDefaultPrompt = function() {

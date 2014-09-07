@@ -21,6 +21,7 @@ function read (opts, cb) {
   var silent = opts.silent
   var editDef = false
   var timeout = opts.timeout
+    , rlopts;
 
   var def = opts.default || ''
   if (def) {
@@ -40,8 +41,11 @@ function read (opts, cb) {
     output = m
   }
 
-  var rlopts = { input: input, output: output, terminal: terminal }
   if(!rl) {
+    rlopts = opts.rl || {};
+    rlopts.input = input;
+    rlopts.output = output;
+    rlopts.terminal = terminal;
     rl = readline.createInterface(rlopts)
   }
 
