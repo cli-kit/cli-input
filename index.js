@@ -28,7 +28,7 @@ var Prompt = function(options, rl) {
   options.infinite = options.infinite !== undefined ? options.infinite : false;
 
   // convert to native types
-  options.native = options.native !== undefined ? options.native : {};
+  options.native = options.native !== undefined ? options.native : null;
 
   // when running in infinite mode, restore to default prompt at end of run
   options.restore = options.restore !== undefined ? options.restore : true;
