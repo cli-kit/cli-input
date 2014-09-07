@@ -13,10 +13,10 @@ try{
 }catch(e){}
 
 var Prompt = function(options, rl) {
+  options = options || {};
+
   this.rl = rl || {};
   this.rl.completer = this.rl.completer || options.completer;
-
-  options = options || {};
 
   // default prompt
   options.prompt = options.prompt || '$';
@@ -51,10 +51,20 @@ var Prompt = function(options, rl) {
 
 util.inherits(Prompt, events.EventEmitter);
 
-Prompt.prototype.replace = function(format, source) {
-  var s = '' + format;
-  for(var k in source) {
-    s = s.replace(new RegExp(':' + k, 'gi'), source[k] ? source[k] : '');
+//Prompt.prototype.transform = function(k, v, options) {
+  //var mre = /^<[^>]+>$/;
+  //if(k === 'message' && options.default) {
+    //console.log('transform mesage');
+  //}
+  //return v;
+//}
+
+Prompt.prototype.replace = function(format, source, options) {
+  var s = '' + format, k, v;
+  for(k in source) {
+    v = source[k];
+    //v = this.transform(k, v, options);
+    s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
   s = s.replace(/ +/g, ' ');
   return s;
@@ -66,7 +76,7 @@ Prompt.prototype.format = function(options) {
   source.date = new Date();
   source.message = options.message;
   source.delimiter = options.delimiter;
-  return this.replace(options.format || this.fmt, source);
+  return this.replace(options.format || this.fmt, source, options);
 }
 
 Prompt.prototype.merge = function(options) {
@@ -164,25 +174,30 @@ function prompt(options) {
 
 var sets = require('./sets');
 
-module.exports = {
-  read: read,
-  prompt: prompt,
-  errors: read.errors,
-  sets: sets
-}
+prompt.read = read;
+prompt.errors = read.errors,
+prompt.sets = sets;
+module.exports = prompt;
 
-var p = prompt({infinite: true});
-p.on('before', function(options, ps) {
-})
-p.on('value', function(value, options, ps) {
-  console.log('value: \'%s\' (%s)', value, typeof value);
-})
-p.on('complete', function(options, ps) {
-})
-p.on('error', function(err) {
-  if(!err.cancel) console.error('error: ' + err.message);
-})
-p.run(sets.userpass, function(err, result) {
-  //if(err && !err.cancel) console.error('error: ' + err.message);
-  //console.dir(result);
-});
+//module.exports = {
+  //read: read,
+  //prompt: prompt,
+  //errors: read.errors,
+  //sets: sets
+//}
+
+//var p = prompt({infinite: true});
+//p.on('before', function(options, ps) {
+//})
+//p.on('value', function(value, options, ps) {
+  //console.log('value: \'%s\' (%s)', value, typeof value);
+//})
+//p.on('complete', function(options, ps) {
+//})
+//p.on('error', function(err) {
+  //if(!err.cancel) console.error('error: ' + err.message);
+//})
+//p.run(sets.userpass, function(err, result) {
+  ////if(err && !err.cancel) console.error('error: ' + err.message);
+  ////console.dir(result);
+//});
