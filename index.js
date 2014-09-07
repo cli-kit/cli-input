@@ -71,7 +71,7 @@ Prompt.prototype.exec = function(options, cb) {
         native.to(value, options.native.delimiter, options.native.json);
     }
 
-    scope.emit('after', value, options, scope);
+    scope.emit('value', value, options, scope);
 
     if(schema && options.schema && options.key) {
       var source = {}, descriptor = {}
@@ -106,6 +106,7 @@ Prompt.prototype.run = function(prompts, cb) {
       callback(err, result);
     });
   }, function(err, result) {
+    if(err.cancel) return scope.emit('cancel', prompts, scope);
     if(err && !options.infinite
        || err === read.errors.cancelled) return cb(err);
     scope.emit('complete', options, scope);
@@ -142,7 +143,7 @@ var mock = [
 var p = prompt({infinite: true});
 p.on('before', function(options, ps) {
 })
-p.on('after', function(value, options, ps) {
+p.on('value', function(value, options, ps) {
   console.log('value: %s (%s)', value, typeof value);
 })
 p.on('complete', function(options, ps) {
@@ -151,6 +152,6 @@ p.on('error', function(err) {
   if(!err.cancel) console.error('error: ' + err.message);
 })
 p.run(mock, function(err, result) {
-  if(err && !err.cancel) console.error('error: ' + err.message);
+  //if(err && !err.cancel) console.error('error: ' + err.message);
   //console.dir(result);
 });
