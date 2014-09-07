@@ -6,11 +6,17 @@ var events = require('events')
   , merge = utils.merge
   , native = require('cli-native');
 
+var schema;
+try{
+  schema = require('async-validate');
+}catch(e){}
+
 var Prompt = function(options) {
   options = options || {};
   options.prompt = options.prompt || '$ ';
   options.replace = options.replace || '*';
   options.native = options.native !== undefined ? options.native : {};
+  options.restore = options.restore !== undefined ? options.restore : true;
   this.options = options;
 }
 
@@ -38,8 +44,26 @@ Prompt.prototype.exec = function(options, cb) {
       value =
         native.to(value, options.native.delimiter, options.native.json);
     }
+
     scope.emit('after', value, options, scope);
-    cb(null, value);
+
+    if(schema && options.schema && options.key) {
+      console.log('validate');
+      var source = {}, descriptor = {}
+      source[options.key] = value;
+      descriptor[options.key] = options.schema;
+      console.dir(descriptor);
+      var validator = new schema(descriptor);
+      validator.validate(source, function(errors, fields) {
+        console.log('validation response');
+        if(errors && errors.length) {
+          return cb(errors[0], value);
+        }
+        cb(null, value);
+      });
+    }else{
+      cb(null, value);
+    }
   });
 }
 
@@ -55,11 +79,12 @@ Prompt.prototype.run = function(prompts, cb) {
       callback(err, result);
     });
   }, function(err, result) {
-    if(err) return cb(err);
+    //console.dir(read);
+    if(err && !options.infinite || err === read.errors.cancelled) return cb(err);
     scope.emit('complete', options, scope);
     cb(err, {list: result, map: map});
     if(options.infinite) {
-      scope.run([scope.getDefaultPrompt()], cb);
+      scope.run(options.restore ? [scope.getDefaultPrompt()] : prompts, cb);
     }
   })
 }
@@ -70,13 +95,15 @@ function prompt(options) {
 
 module.exports = {
   read: read,
-  prompt: prompt
+  prompt: prompt,
+  errors: read.errors
 }
 
 var mock = [
   {
     key: 'name',
-    message: 'enter name:'
+    message: 'enter name:',
+    schema: {type: 'boolean'}
   },
   {
     key: 'pass',
@@ -93,6 +120,7 @@ p.on('after', function(value, options, ps) {
 })
 p.on('complete', function(options, ps) {
 })
-p.run([], function(err, result) {
+p.run(mock, function(err, result) {
+  if(err && !err.cancel) console.error(err.message);
   //console.dir(result);
 });

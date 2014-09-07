@@ -1,8 +1,13 @@
-module.exports = read
-
 var readline = require('readline')
 var Mute = require('mute-stream')
   , rl;
+
+var errors = {
+  cancelled: new Error('cancelled'),
+  timeout: new Error('timed out')
+}
+
+errors.cancelled.cancel = true;
 
 function read (opts, cb) {
   if (typeof opts.default !== 'undefined' &&
@@ -57,13 +62,13 @@ function read (opts, cb) {
 
   rl.on('SIGINT', function () {
     rl.close()
-    onError(new Error('canceled'))
+    onError(errors.cancelled);
   })
 
   var timer
   if (timeout) {
     timer = setTimeout(function () {
-      onError(new Error('timed out'))
+      onError(errors.timeout)
     }, timeout)
   }
 
@@ -105,3 +110,6 @@ function read (opts, cb) {
     cb(null, line, isDefault)
   }
 }
+
+module.exports = read
+module.exports.errors = errors
