@@ -42,28 +42,30 @@ var Prompt = function(options, rl) {
 
   options.delimiter = options.delimiter || '⚡';
 
+  this.formats = options.formats || {};
+  this.formats.default = this.formats.defaults || '(%s)';
+
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
-    ':name :delimiter :message'
+    ':name :delimiter :message :default'
 
   this.options = options;
 }
 
 util.inherits(Prompt, events.EventEmitter);
 
-//Prompt.prototype.transform = function(k, v, options) {
-  //var mre = /^<[^>]+>$/;
-  //if(k === 'message' && options.default) {
-    //console.log('transform mesage');
-  //}
-  //return v;
-//}
+Prompt.prototype.transform = function(k, v, options) {
+  if(this.formats[k] && v) {
+    v = util.format(this.formats[k], v);
+  }
+  return v;
+}
 
 Prompt.prototype.replace = function(format, source, options) {
   var s = '' + format, k, v;
   for(k in source) {
     v = source[k];
-    //v = this.transform(k, v, options);
+    v = this.transform(k, v, options);
     s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
   s = s.replace(/ +/g, ' ');
@@ -76,6 +78,7 @@ Prompt.prototype.format = function(options) {
   source.date = new Date();
   source.message = options.message;
   source.delimiter = options.delimiter;
+  source.default = options.default;
   return this.replace(options.format || this.fmt, source, options);
 }
 

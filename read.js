@@ -46,11 +46,11 @@ function read (opts, cb) {
   var def = opts.default || ''
   if (def) {
     if (silent) {
-      prompt += '(<default hidden>) '
+      //prompt += '(<default hidden>) '
     } else if (opts.edit) {
       editDef = true
-    } else {
-      prompt += '(' + def + ') '
+    //} else {
+      //prompt += '(' + def + ') '
     }
   }
 
