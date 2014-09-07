@@ -9,6 +9,12 @@ var errors = {
 
 errors.cancelled.cancel = true;
 
+function init(opts) {
+  if(!rl) {
+    rl = readline.createInterface(opts)
+  }
+}
+
 function read (opts, cb) {
   if (typeof opts.default !== 'undefined' &&
       typeof opts.default !== 'string' &&
@@ -117,3 +123,4 @@ function read (opts, cb) {
 
 module.exports = read
 module.exports.errors = errors
+module.exports.rl = rl;

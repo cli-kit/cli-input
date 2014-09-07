@@ -11,26 +11,42 @@ try{
   schema = require('async-validate');
 }catch(e){}
 
-var Prompt = function(options) {
+var Prompt = function(options, rl) {
+  this.rl = rl || {};
+  this.rl.completer = this.rl.completer || options.completer;
+
   options = options || {};
+
+  // default prompt
   options.prompt = options.prompt || '$ ';
+
+  // default replacment character for silent
   options.replace = options.replace || '*';
+
+  // determine if a prompt should be re-displayed at the end of a run
+  options.infinite = options.infinite !== undefined ? options.infinite : false;
+
+  // convert to native types
   options.native = options.native !== undefined ? options.native : {};
+
+  // when running in infinite mode, restore to default prompt at end of run
   options.restore = options.restore !== undefined ? options.restore : true;
-  options.rl = options.rl || {};
-  options.rl.completer = options.rl.completer || options.completer;
+
+  // when a validation error occurs repeat the last prompt
+  // until we get a valid value
+  options.repeat = options.repeat !== undefined ? options.repeat : true;
+
   this.options = options;
 }
 
 util.inherits(Prompt, events.EventEmitter);
 
 Prompt.prototype.merge = function(options) {
-  console.dir(this.options);
-  var rl = this.options.rl;
-  delete this.options.rl;
   var o = merge(this.options, {});
   o = merge(options, o, null, true);
-  o.rl = rl;
+  if(typeof this.options.prompt === 'function') {
+    o.prompt = this.options.prompt(options, o, this);
+  }
   return o;
 }
 
@@ -45,7 +61,10 @@ Prompt.prototype.exec = function(options, cb) {
   var scope = this;
   options = this.merge(options);
   this.emit('before', options, scope);
-  read(options, function(err, value) {
+  var opts = {};
+  for(var k in options) opts[k] = options[k];
+  opts.rl = this.rl;
+  read(opts, function(err, value) {
     if(err) return cb(err);
     if(options.native) {
       value =
@@ -55,15 +74,16 @@ Prompt.prototype.exec = function(options, cb) {
     scope.emit('after', value, options, scope);
 
     if(schema && options.schema && options.key) {
-      console.log('validate');
       var source = {}, descriptor = {}
       source[options.key] = value;
       descriptor[options.key] = options.schema;
-      console.dir(descriptor);
       var validator = new schema(descriptor);
       validator.validate(source, function(errors, fields) {
-        console.log('validation response');
         if(errors && errors.length) {
+          if(options.repeat) {
+            scope.emit('error', errors[0], options, cb);
+            return scope.exec(options, cb);
+          }
           return cb(errors[0], value);
         }
         cb(null, value);
@@ -86,8 +106,8 @@ Prompt.prototype.run = function(prompts, cb) {
       callback(err, result);
     });
   }, function(err, result) {
-    //console.dir(read);
-    if(err && !options.infinite || err === read.errors.cancelled) return cb(err);
+    if(err && !options.infinite
+       || err === read.errors.cancelled) return cb(err);
     scope.emit('complete', options, scope);
     cb(err, {list: result, map: map});
     if(options.infinite) {
@@ -127,7 +147,10 @@ p.on('after', function(value, options, ps) {
 })
 p.on('complete', function(options, ps) {
 })
+p.on('error', function(err) {
+  if(!err.cancel) console.error('error: ' + err.message);
+})
 p.run(mock, function(err, result) {
-  if(err && !err.cancel) console.error(err.message);
+  if(err && !err.cancel) console.error('error: ' + err.message);
   //console.dir(result);
 });
