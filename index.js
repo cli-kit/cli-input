@@ -40,6 +40,9 @@ var Prompt = function(options, rl) {
   // trim leading and trailing whitespace from input lines
   options.trim = options.trim !== undefined ? options.trim : false;
 
+  // split values into array
+  options.split = options.split !== undefined ? options.split : null;
+
   options.delimiter = options.delimiter || '⚡';
 
   this.formats = options.formats || {};
@@ -120,6 +123,14 @@ Prompt.prototype.exec = function(options, cb) {
       val = value;
     }
 
+    if((typeof options.split === 'string' || options.split instanceof RegExp)
+      && val && typeof val === 'string') {
+      val = val.split(options.split);
+      val = val.filter(function(part) {
+        return part;
+      });
+    }
+
     scope.emit('value', val, options, scope);
 
     if(schema && options.schema && options.key) {
@@ -144,6 +155,7 @@ Prompt.prototype.exec = function(options, cb) {
 }
 
 Prompt.prototype.run = function(prompts, cb) {
+  cb = cb || function(){};
   var scope = this, options = this.options;
   prompts = prompts || [];
   var map = {};
