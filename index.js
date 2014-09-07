@@ -66,7 +66,7 @@ Prompt.prototype.format = function(options) {
   source.date = new Date();
   source.message = options.message;
   source.delimiter = options.delimiter;
-  return this.replace(this.fmt, source);
+  return this.replace(options.format || this.fmt, source);
 }
 
 Prompt.prototype.merge = function(options) {
