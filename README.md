@@ -1,6 +1,6 @@
 # Input
 
-User input (readline) functions for the cli toolkit.
+Prompt and user input library.
 
 ## Install
 
