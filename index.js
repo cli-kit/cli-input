@@ -1,5 +1,6 @@
 var events = require('events')
   , util = require('util')
+  , path = require('path')
   , async = require('async')
   , read = require('./read')
   , utils = require('cli-util')
@@ -18,7 +19,7 @@ var Prompt = function(options, rl) {
   options = options || {};
 
   // default prompt
-  options.prompt = options.prompt || '$ ';
+  options.prompt = options.prompt || '$';
 
   // default replacment character for silent
   options.replace = options.replace || '*';
@@ -39,16 +40,42 @@ var Prompt = function(options, rl) {
   // trim leading and trailing whitespace from input lines
   options.trim = options.trim !== undefined ? options.trim : false;
 
+  options.delimiter = options.delimiter || '⚡';
+
+  this.name = options.name || path.basename(process.argv[1]);
+  this.fmt = options.format ||
+    ':name :message :delimiter'
+
   this.options = options;
 }
 
 util.inherits(Prompt, events.EventEmitter);
+
+Prompt.prototype.replace = function(format, source) {
+  var s = '' + format;
+  for(var k in source) {
+    s = s.replace(new RegExp(':' + k, 'gi'), source[k] ? source[k] : '');
+  }
+  s = s.replace(/ +/g, ' ');
+  return s;
+}
+
+Prompt.prototype.format = function(options) {
+  var source = options.data || {};
+  source.name = source.name || this.name;
+  source.date = new Date();
+  source.message = options.message;
+  source.delimiter = options.delimiter;
+  return this.replace(this.fmt, source);
+}
 
 Prompt.prototype.merge = function(options) {
   var o = merge(this.options, {});
   o = merge(options, o, null, true);
   if(typeof this.options.prompt === 'function') {
     o.prompt = this.options.prompt(options, o, this);
+  }else{
+    o.prompt = this.format(o);
   }
   return o;
 }
@@ -135,13 +162,14 @@ function prompt(options) {
   return new Prompt(options);
 }
 
+var sets = require('./sets');
+
 module.exports = {
   read: read,
   prompt: prompt,
-  errors: read.errors
+  errors: read.errors,
+  sets: sets
 }
-
-var sets = require('./sets');
 
 var p = prompt({infinite: true});
 p.on('before', function(options, ps) {

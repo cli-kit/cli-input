@@ -1,12 +1,12 @@
 var username = {
   key: 'name',
-  message: 'username:',
+  message: '<username>',
   schema: {type: 'string'}
 }
 
 var password = {
   key: 'pass',
-  message: 'password:',
+  message: '<password>',
   silent: true,
   schema: {type: 'string'}
 }
