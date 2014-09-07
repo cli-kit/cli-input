@@ -154,6 +154,17 @@ Prompt.prototype.exec = function(options, cb) {
   });
 }
 
+Prompt.prototype.pause = function() {
+  this._paused = true;
+}
+
+Prompt.prototype.resume = function(prompts, cb) {
+  this._paused = false;
+  if(this.options.infinite) {
+    this.run(prompts, cb);
+  }
+}
+
 Prompt.prototype.run = function(prompts, cb) {
   cb = cb || function(){};
   var scope = this, options = this.options;
@@ -177,7 +188,7 @@ Prompt.prototype.run = function(prompts, cb) {
     }
     scope.emit('complete', options, scope);
     cb(err, {list: result, map: map});
-    if(options.infinite) {
+    if(options.infinite && !scope._paused) {
       scope.run(options.restore ? [scope.getDefaultPrompt()] : prompts, cb);
     }
   })
