@@ -3,15 +3,27 @@ var Mute = require('mute-stream')
   , rl;
 
 var errors = {
-  cancelled: new Error('cancelled'),
+  cancel: new Error('cancelled'),
   timeout: new Error('timed out')
 }
 
-errors.cancelled.cancel = true;
+errors.cancel.cancel = true;
+errors.timeout.timeout = true;
 
-function init(opts) {
-  if(!rl) {
-    rl = readline.createInterface(opts)
+function open(opts) {
+  close();
+  opts = opts || {};
+  opts.input = opts.input || process.stdin
+  opts.output = opts.output || process.stdout
+  opts.terminal = !!(opts.terminal || opts.output.isTTY)
+  rl = readline.createInterface(opts)
+}
+
+function close() {
+  if(rl) {
+    rl.close();
+    rl.removeAllListeners();
+    rl = null;
   }
 }
 
@@ -23,11 +35,13 @@ function read (opts, cb) {
   }
   var input = opts.input || process.stdin
   var output = opts.output || process.stdout
+  opts.rl = opts.rl || {};
   var prompt = (opts.prompt || '').replace(/\s+$/, '') + ' ';
   var silent = opts.silent
   var editDef = false
   var timeout = opts.timeout
-    , rlopts;
+    , rlopts
+    , m;
 
   var def = opts.default || ''
   if (def) {
@@ -39,26 +53,24 @@ function read (opts, cb) {
       prompt += '(' + def + ') '
     }
   }
+
   var terminal = !!(opts.terminal || output.isTTY)
 
   if(silent) {
-    var m = new Mute({ replace: opts.replace, prompt: prompt })
+    m = new Mute({ replace: opts.replace, prompt: prompt })
     m.pipe(output, {end: false})
-    output = m
+    output = opts.rl.output = m
   }
 
-  if(!rl) {
-    rlopts = opts.rl || {};
-    rlopts.input = input;
-    rlopts.output = output;
-    rlopts.terminal = terminal;
-    rl = readline.createInterface(rlopts)
+  if(!rl || silent) {
+    open(opts.rl);
   }
 
-  if(output instanceof Mute) output.unmute()
+  //if(output instanceof Mute) output.unmute()
   rl.setPrompt(prompt)
   rl.prompt()
   if (silent) {
+    //console.log('muting stream');
     output.mute()
   } else if (editDef) {
     rl.line = def
@@ -72,7 +84,7 @@ function read (opts, cb) {
 
   rl.on('SIGINT', function () {
     rl.close()
-    onError(errors.cancelled);
+    onError(errors.cancel);
   })
 
   var timer
@@ -84,30 +96,31 @@ function read (opts, cb) {
 
   function done () {
     called = true
-    //rl.close()
     rl.removeListener('line', onLine);
     rl.removeListener('error', onError);
     rl.removeAllListeners('SIGINT');
 
     clearTimeout(timer);
 
-    if(silent) {
-      output.mute()
+    if(output instanceof Mute) {
+      opts.rl.output = process.stdout;
+      output.unmute()
       output.end()
+      close();
     }
   }
 
   function onError (er) {
-    if (called) return
+    if(called) return
     done()
     return cb(er)
   }
 
   function onLine (line) {
-    if (called) return
-    if (silent && terminal) {
+    if(called) return
+    if(output instanceof Mute) {
       output.unmute()
-      output.write('\r\n')
+      //output.write('\r\n')
     }
     done()
     // truncate the \n at the end.

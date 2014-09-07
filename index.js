@@ -106,9 +106,14 @@ Prompt.prototype.run = function(prompts, cb) {
       callback(err, result);
     });
   }, function(err, result) {
-    if(err.cancel) return scope.emit('cancel', prompts, scope);
-    if(err && !options.infinite
-       || err === read.errors.cancelled) return cb(err);
+    //console.dir(result);
+    //console.dir(err);
+    //console.log('inf: %s', options.infinite);
+    if(err && err.cancel) return scope.emit('cancel', prompts, scope);
+    if(err && err.timeout) return scope.emit('timeout', prompts, scope);
+    if(err) {
+      scope.emit('error', prompts, scope);
+    }
     scope.emit('complete', options, scope);
     cb(err, {list: result, map: map});
     if(options.infinite) {
@@ -127,18 +132,7 @@ module.exports = {
   errors: read.errors
 }
 
-var mock = [
-  {
-    key: 'name',
-    message: 'enter name:',
-    schema: {type: 'boolean'}
-  },
-  {
-    key: 'pass',
-    message: 'enter password:',
-    silent: true
-  }
-]
+var sets = require('./sets');
 
 var p = prompt({infinite: true});
 p.on('before', function(options, ps) {
@@ -151,7 +145,7 @@ p.on('complete', function(options, ps) {
 p.on('error', function(err) {
   if(!err.cancel) console.error('error: ' + err.message);
 })
-p.run(mock, function(err, result) {
+p.run(sets.userpass, function(err, result) {
   //if(err && !err.cancel) console.error('error: ' + err.message);
   //console.dir(result);
 });
