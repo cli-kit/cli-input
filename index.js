@@ -36,6 +36,9 @@ var Prompt = function(options, rl) {
   // until we get a valid value
   options.repeat = options.repeat !== undefined ? options.repeat : true;
 
+  // trim leading and trailing whitespace from input lines
+  options.trim = options.trim !== undefined ? options.trim : false;
+
   this.options = options;
 }
 
@@ -58,20 +61,26 @@ Prompt.prototype.getDefaultPrompt = function() {
 }
 
 Prompt.prototype.exec = function(options, cb) {
-  var scope = this;
   options = this.merge(options);
-  this.emit('before', options, scope);
-  var opts = {};
-  for(var k in options) opts[k] = options[k];
+  var scope = this;
+  var opts = {}, k;
+  var trim = options.trim;
+  for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
+  this.emit('before', options, scope);
   read(opts, function(err, value) {
     if(err) return cb(err);
-    if(options.native) {
-      value =
-        native.to(value, options.native.delimiter, options.native.json);
+    var val = (value || '').trim();
+    if(options.native && val) {
+      val =
+        native.to(val, options.native.delimiter, options.native.json);
     }
 
-    scope.emit('value', value, options, scope);
+    if(!trim && typeof val === 'string') {
+      val = value;
+    }
+
+    scope.emit('value', val, options, scope);
 
     if(schema && options.schema && options.key) {
       var source = {}, descriptor = {}
@@ -86,10 +95,10 @@ Prompt.prototype.exec = function(options, cb) {
           }
           return cb(errors[0], value);
         }
-        cb(null, value);
+        cb(null, val);
       });
     }else{
-      cb(null, value);
+      cb(null, val);
     }
   });
 }
@@ -138,7 +147,7 @@ var p = prompt({infinite: true});
 p.on('before', function(options, ps) {
 })
 p.on('value', function(value, options, ps) {
-  console.log('value: %s (%s)', value, typeof value);
+  console.log('value: \'%s\' (%s)', value, typeof value);
 })
 p.on('complete', function(options, ps) {
 })
