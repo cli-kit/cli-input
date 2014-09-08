@@ -36,7 +36,7 @@ function read (opts, cb) {
   var input = opts.input || process.stdin
   var output = opts.output || process.stdout
   opts.rl = opts.rl || {};
-  var prompt = (opts.prompt || '').replace(/\s+$/, '') + ' ';
+  var prompt = (opts.prompt || '');
   var silent = opts.silent
   var editDef = false
   var timeout = opts.timeout
@@ -66,9 +66,9 @@ function read (opts, cb) {
     open(opts.rl);
   }
 
-  //if(output instanceof Mute) output.unmute()
-  rl.setPrompt(prompt)
-  rl.prompt()
+  rl.setPrompt(prompt, opts.length || prompt.length);
+  rl.prompt();
+
   if (silent) {
     //console.log('muting stream');
     output.mute()

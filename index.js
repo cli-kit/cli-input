@@ -45,12 +45,15 @@ var Prompt = function(options, rl) {
 
   options.delimiter = options.delimiter || '⚡';
 
+  // color callback functions
+  options.colors = options.colors || {};
+
   this.formats = options.formats || {};
   this.formats.default = this.formats.defaults || '(%s)';
 
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
-    ':name :delimiter :message :default'
+    ':name :delimiter :message :default';
 
   this.options = options;
 }
@@ -66,12 +69,48 @@ Prompt.prototype.transform = function(k, v, options) {
 
 Prompt.prototype.replace = function(format, source, options) {
   var s = '' + format, k, v;
+  var items = {};
+
+  function clean(s) {
+    // strip multiple whitespace
+    s = s.replace(/ +/g, ' ');
+    // strip extraneous keys
+    s = s.replace(/:[^:]+\s/g, '');
+    return s;
+  }
+
   for(k in source) {
     v = source[k];
     v = this.transform(k, v, options);
+    items[k] = {k: k, v: v}
+    if(this.rl.output
+      && this.rl.output.isTTY
+      && typeof this.options.colors[k] === 'function') {
+      items[k].c = this.options.colors[k](v);
+    }
+    //s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
+  }
+
+  // build up plain string so we can get the length
+  for(k in items) {
+    v = items[k].v;
     s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
-  s = s.replace(/ +/g, ' ');
+  s = clean(s);
+
+  // plain prompt length with no color (ANSI)
+  // store string length so we can workaround
+  // #3860, fix available from 0.11.3 node
+  options.length = s.length;
+
+  // now build up a colorized version
+  s = '' + format;
+  for(k in items) {
+    v = items[k].c || items[k].v;
+    s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
+  }
+  s = clean(s);
+
   return s;
 }
 
@@ -178,9 +217,6 @@ Prompt.prototype.run = function(prompts, cb) {
       callback(err, result);
     });
   }, function(err, result) {
-    //console.dir(result);
-    //console.dir(err);
-    //console.log('inf: %s', options.infinite);
     if(err && err.cancel) return scope.emit('cancel', prompts, scope);
     if(err && err.timeout) return scope.emit('timeout', prompts, scope);
     if(err) {
