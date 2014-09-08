@@ -52,11 +52,11 @@ var Prompt = function(options, rl) {
   options.colors = options.colors || {};
 
   this.formats = options.formats || {};
-  this.formats.default = this.formats.default || '(%s)';
+  this.formats.default = this.formats.default || '(%s) ';
 
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
-    ':name :delimiter :message :default';
+    ':name :delimiter :location :status :message :default';
 
   this.options = options;
 }
@@ -78,7 +78,7 @@ Prompt.prototype.replace = function(format, source, options) {
     // strip multiple whitespace
     s = s.replace(/ +/g, ' ');
     // strip extraneous keys
-    s = s.replace(/:[^:]+\s/g, '');
+    s = s.replace(/:[^:\s]+\s/g, '');
     return s;
   }
 
