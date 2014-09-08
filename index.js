@@ -58,6 +58,10 @@ var Prompt = function(options, rl) {
   this.fmt = options.format ||
     ':name :delimiter :location :status :message :default';
 
+  this.keys = this.fmt.split(' ').map(function(value) {
+    return value.replace(/^:/, '');
+  })
+
   this.options = options;
 }
 
@@ -75,13 +79,15 @@ Prompt.prototype.transform = function(k, v, options) {
 
 Prompt.prototype.replace = function(format, source, options) {
   var s = '' + format, k, v;
-  var items = {};
+  var items = {}, keys = this.keys;
 
   function clean(s) {
+    // strip extraneous keys
+    for(var i = 0;i < keys.length;i++) {
+      s = s.replace(new RegExp(':' + keys[i], 'g'), '');
+    }
     // strip multiple whitespace
     s = s.replace(/ +/g, ' ');
-    // strip extraneous keys
-    s = s.replace(/:[^:\s]+\s/g, '');
     return s;
   }
 
