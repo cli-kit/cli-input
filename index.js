@@ -52,7 +52,7 @@ var Prompt = function(options, rl) {
   options.colors = options.colors || {};
 
   this.formats = options.formats || {};
-  this.formats.default = this.formats.defaults || '(%s)';
+  this.formats.default = this.formats.default || '(%s)';
 
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
@@ -99,12 +99,13 @@ Prompt.prototype.replace = function(format, source, options) {
   for(k in source) {
     v = source[k];
     // get replacement values
-    v = this.transform(k, v, options);
+    //v = this.transform(k, v, options);
     // store them for processing later
     items[k] = {k: k, v: v}
     // get colorized values
     if(highlights
       && typeof this.options.colors[k] === 'function') {
+      //console.log('colorize on %s', k);
       items[k].c = this.options.colors[k](v);
     }
   }
@@ -113,6 +114,7 @@ Prompt.prototype.replace = function(format, source, options) {
   var raw = '' + format;
   for(k in items) {
     v = items[k].v;
+    v = this.transform(k, v, options);
     raw = raw.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
   raw = clean(raw);
@@ -121,6 +123,7 @@ Prompt.prototype.replace = function(format, source, options) {
   s = '' + format;
   for(k in items) {
     v = items[k].c || items[k].v;
+    v = this.transform(k, v, options);
     s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
   s = clean(s);
