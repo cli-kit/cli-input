@@ -106,6 +106,9 @@ Prompt.prototype.replace = function(format, source, options) {
 
   for(k in source) {
     v = source[k];
+    if(typeof v === 'function') {
+      v = v(k, options);
+    }
     // get replacement values
     //v = this.transform(k, v, options);
     // store them for processing later
