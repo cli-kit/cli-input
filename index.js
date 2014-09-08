@@ -17,6 +17,9 @@ var Prompt = function(options, rl) {
 
   this.rl = rl || {};
   this.rl.completer = this.rl.completer || options.completer;
+  this.rl.input = options.input || process.stdin;
+  this.rl.output = options.output || process.stdout;
+  this.rl.terminal = !!(options.terminal || this.rl.output.isTTY);
 
   // default prompt
   options.prompt = options.prompt || '>';
@@ -154,6 +157,7 @@ Prompt.prototype.exec = function(options, cb) {
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
   this.emit('before', options, scope);
+  //console.dir(opts);
   read(opts, function(err, value) {
     if(err) return cb(err);
     var val = (value || '').trim();
