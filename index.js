@@ -101,11 +101,6 @@ Prompt.prototype.replace = function(format, source, options) {
   }
   raw = clean(raw);
 
-  // plain prompt length with no color (ANSI)
-  // store string length so we can workaround
-  // #3860, fix available from 0.11.3 node
-  //var len = raw.length;
-
   // now build up a colorized version
   s = '' + format;
   for(k in items) {
@@ -114,7 +109,7 @@ Prompt.prototype.replace = function(format, source, options) {
   }
   s = clean(s);
 
-  return {prompt: s, raw: raw, length: raw.length};
+  return {prompt: s, raw: raw};
 }
 
 Prompt.prototype.format = function(options) {
@@ -135,7 +130,10 @@ Prompt.prototype.merge = function(options) {
   }else{
     fmt = this.format(o);
     o.raw = fmt.raw;
-    o.length = fmt.length;
+    // plain prompt length with no color (ANSI)
+    // store string length so we can workaround
+    // #3860, fix available from 0.11.3 node
+    o.length = fmt.raw.length;
     o.prompt = fmt.prompt;
   }
   return o;
