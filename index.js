@@ -19,7 +19,7 @@ var Prompt = function(options, rl) {
   this.rl.completer = this.rl.completer || options.completer;
 
   // default prompt
-  options.prompt = options.prompt || '$';
+  options.prompt = options.prompt || '>';
 
   // default replacment character for silent
   options.replace = options.replace || '*';
@@ -81,27 +81,30 @@ Prompt.prototype.replace = function(format, source, options) {
 
   for(k in source) {
     v = source[k];
+    // get replacement values
     v = this.transform(k, v, options);
+    // store them for processing later
     items[k] = {k: k, v: v}
+    // get colorized values
     if(this.rl.output
       && this.rl.output.isTTY
       && typeof this.options.colors[k] === 'function') {
       items[k].c = this.options.colors[k](v);
     }
-    //s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
 
   // build up plain string so we can get the length
+  var raw = '' + format;
   for(k in items) {
     v = items[k].v;
-    s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
+    raw = raw.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
-  s = clean(s);
+  raw = clean(raw);
 
   // plain prompt length with no color (ANSI)
   // store string length so we can workaround
   // #3860, fix available from 0.11.3 node
-  options.length = s.length;
+  //var len = raw.length;
 
   // now build up a colorized version
   s = '' + format;
@@ -111,7 +114,7 @@ Prompt.prototype.replace = function(format, source, options) {
   }
   s = clean(s);
 
-  return s;
+  return {prompt: s, raw: raw, length: raw.length};
 }
 
 Prompt.prototype.format = function(options) {
@@ -125,12 +128,15 @@ Prompt.prototype.format = function(options) {
 }
 
 Prompt.prototype.merge = function(options) {
-  var o = merge(this.options, {});
+  var o = merge(this.options, {}), fmt;
   o = merge(options, o, null, true);
   if(typeof this.options.prompt === 'function') {
     o.prompt = this.options.prompt(options, o, this);
   }else{
-    o.prompt = this.format(o);
+    fmt = this.format(o);
+    o.raw = fmt.raw;
+    o.length = fmt.length;
+    o.prompt = fmt.prompt;
   }
   return o;
 }
