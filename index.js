@@ -82,6 +82,20 @@ Prompt.prototype.replace = function(format, source, options) {
     return s;
   }
 
+
+  var highlights = this.rl.output && this.rl.output.isTTY;
+  var prefixed = this.options.colors && this.options.colors.prefix;
+  var name = source.name
+    , delimiter = source.delimiter;
+
+  if(prefixed) {
+    if(highlights) {
+      prefixed = this.options.colors.prefix(name, delimiter);
+    }
+    delete source.name;
+    delete source.delimiter;
+  }
+
   for(k in source) {
     v = source[k];
     // get replacement values
@@ -89,8 +103,7 @@ Prompt.prototype.replace = function(format, source, options) {
     // store them for processing later
     items[k] = {k: k, v: v}
     // get colorized values
-    if(this.rl.output
-      && this.rl.output.isTTY
+    if(highlights
       && typeof this.options.colors[k] === 'function') {
       items[k].c = this.options.colors[k](v);
     }
@@ -111,6 +124,11 @@ Prompt.prototype.replace = function(format, source, options) {
     s = s.replace(new RegExp(':' + k, 'gi'), v ? v : '');
   }
   s = clean(s);
+
+  if(prefixed && prefixed.value && prefixed.color) {
+    raw = prefixed.value + raw;
+    s = prefixed.color + s;
+  }
 
   return {prompt: s, raw: raw};
 }
