@@ -64,8 +64,11 @@ var Prompt = function(options, rl) {
 util.inherits(Prompt, events.EventEmitter);
 
 Prompt.prototype.transform = function(k, v, options) {
-  if(this.formats[k] && v) {
-    v = util.format(this.formats[k], v);
+  var fmts = merge(this.formats, {});
+  fmts = merge(options.formats || {}, fmts);
+  //console.dir(fmts);
+  if(fmts[k] && v) {
+    v = util.format(fmts[k], v);
   }
   return v;
 }
@@ -81,7 +84,6 @@ Prompt.prototype.replace = function(format, source, options) {
     s = s.replace(/:[^:\s]+\s/g, '');
     return s;
   }
-
 
   var highlights = this.rl.output && this.rl.output.isTTY;
   var prefixed = this.options.colors && this.options.colors.prefix;
