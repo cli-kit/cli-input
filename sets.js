@@ -16,7 +16,10 @@ var confirm = {
   key: 'confirm',
   message: 'are you sure? (y/n)',
   schema: {type: 'string'},
+  history: false,
   repeat: true,
+  acceptable: 'y',
+  rejectable: 'n',
   accept: /^y(es)?$/, // accepts y | yes, but not *ye*
   reject: /^no?$/     // accepts no | n
 }

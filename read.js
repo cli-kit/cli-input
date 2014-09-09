@@ -106,6 +106,7 @@ function read (opts, cb) {
     rl.removeAllListeners('SIGINT');
 
     //console.log('read done() callback %s', rl.listeners('line').length);
+    //
 
     clearTimeout(timer);
     if(silent) {
@@ -117,8 +118,8 @@ function read (opts, cb) {
       close();
     }
 
-    if(err) return cb(err);
-    cb(null, line, isDefault)
+    if(err) return cb(err, null, null, rl);
+    cb(null, line, isDefault, rl)
   }
 
   function onError (err) {

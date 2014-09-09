@@ -198,7 +198,7 @@ Prompt.prototype.exec = function(options, cb) {
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
   this.emit('before', options, scope);
-  read(opts, function(err, value) {
+  read(opts, function(err, value, isDefault, rl) {
     if(err) return cb(err);
     var val = (value || '').trim();
     if(options.native && val) {
@@ -220,6 +220,12 @@ Prompt.prototype.exec = function(options, cb) {
 
     //console.log('emitting value %j', options.key);
     //console.log('emitting value %s', cb);
+    //
+
+    if(options.history === false) {
+      //console.log('removing last history item %j', rl.history);
+      var last = rl.history.shift();
+    }
 
     if(options.type === types.binary) {
       var accept = options.accept
