@@ -210,7 +210,19 @@ Prompt.prototype.exec = function(options, cb) {
   this.emit('before', options, scope);
   read(opts, function(err, value, isDefault, rl) {
     if(err) return cb(err);
+    //console.log('got read value "%s" (%s)', value, typeof value);
     var val = (value || '').trim();
+
+    //console.dir(options);
+    //console.log('required %s', options.required);
+    //console.log('repeat %s', options.repeat);
+    //console.log('val "%s"', val);
+
+    // required and repeat, prompt until we get a value
+    if(!val && options.required && options.repeat) {
+      return scope.exec(options, cb);
+    }
+
     if(options.native && val) {
       val =
         native.to(val, options.native.delimiter, options.native.json);

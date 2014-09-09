@@ -118,6 +118,9 @@ function read (opts, cb) {
       close();
     }
 
+    // get *undefined* string from mute stream on no input
+    if(line == "undefined") line = '';
+
     if(err) return cb(err, null, null, rl);
     cb(null, line, isDefault, rl)
   }
@@ -128,7 +131,7 @@ function read (opts, cb) {
 
   function onLine (line) {
     if(silent) {
-      output.unmute()
+      //output.unmute()
       //output.write('\r\n')
     }
 

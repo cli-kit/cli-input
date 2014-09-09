@@ -8,7 +8,9 @@ var password = {
   key: 'pass',
   message: '<password>',
   silent: true,
-  schema: {type: 'string'}
+  schema: {type: 'string'},
+  required: true,
+  repeat: true
 }
 
 var confirm = {
