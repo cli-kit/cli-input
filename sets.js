@@ -11,8 +11,18 @@ var password = {
   schema: {type: 'string'}
 }
 
+var confirm = {
+  type: 'binary',
+  key: 'confirm',
+  message: 'are you sure?',
+  schema: {type: 'string'},
+  accept: /^y(es)?$/, // accepts y | yes, but not *ye*
+  reject: /^no?$/     // accepts no | n
+}
+
 module.exports = {
   username: [username],
   password: [password],
-  userpass: [username, password]
+  userpass: [username, password],
+  confirm: [confirm]
 }

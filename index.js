@@ -10,6 +10,10 @@ var events = require('events')
 var paused = new Error('paused');
 paused.paused = true;
 
+var types = {
+  binary: 'binary'
+}
+
 var schema;
 try{
   schema = require('async-validate');
@@ -217,6 +221,20 @@ Prompt.prototype.exec = function(options, cb) {
     //console.log('emitting value %j', options.key);
     //console.log('emitting value %s', cb);
 
+    if(options.type === types.binary) {
+      var accept = options.accept
+        , reject = options.reject;
+      if(accept.test(val)) {
+        val = {result: val, accept: true}
+      }else if(reject.test(val)) {
+        val = {result: val, accept: false}
+      }else{
+        val = {result: val, accept: null}
+        scope.emit('unacceptable', val, options, scope);
+        if(options.repeat) return scope.exec(options, cb);
+      }
+    }
+
     scope.emit('value', val, options, scope);
 
     if(schema && options.schema && options.key) {
@@ -303,8 +321,12 @@ prompt.errors = read.errors,
 prompt.sets = sets;
 module.exports = prompt;
 
+//var p = prompt({repeat: true});
+//p.run(sets.confirm, function(er, result) {
+  //console.dir(result);
+  //process.exit();
+//});
 /*
-var p = prompt({infinite: true});
 p.on('before', function(options, ps) {
 })
 p.on('value', function(value, options, ps) {
