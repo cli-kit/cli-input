@@ -77,7 +77,6 @@ util.inherits(Prompt, events.EventEmitter);
 Prompt.prototype.transform = function(k, v, options) {
   var fmts = merge(this.formats, {});
   fmts = merge(options.formats || {}, fmts);
-  //console.dir(fmts);
   if(fmts[k] && v) {
     v = util.format(fmts[k], v);
   }
@@ -111,18 +110,29 @@ Prompt.prototype.replace = function(format, source, options) {
     delete source.delimiter;
   }
 
+  var replaces = false;
+
   for(k in source) {
     v = source[k];
     if(typeof v === 'function') {
       v = v(k, options);
     }
-    // get replacement values
-    //v = this.transform(k, v, options);
+    replaces = Array.isArray(options.parameters) && k === 'message';
     // store them for processing later
     items[k] = {k: k, v: v}
+
+    // parameter replacment
+    if(replaces) {
+      items[k].v = util.format(v, options.parameters);
+      if(highlights && typeof this.options.colors.parameters === 'function') {
+        items[k].c =
+          util.format(v, this.options.colors.parameters(options.parameters));
+      }
+    }
+
     // get colorized values
     if(highlights
-      && typeof this.options.colors[k] === 'function') {
+      && typeof this.options.colors[k] === 'function' && !replaces) {
       //console.log('colorize on %s', k);
       items[k].c = this.options.colors[k](v);
     }
