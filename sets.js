@@ -14,8 +14,9 @@ var password = {
 var confirm = {
   type: 'binary',
   key: 'confirm',
-  message: 'are you sure?',
+  message: 'are you sure? (y/n)',
   schema: {type: 'string'},
+  repeat: true,
   accept: /^y(es)?$/, // accepts y | yes, but not *ye*
   reject: /^no?$/     // accepts no | n
 }
