@@ -7,6 +7,9 @@ var events = require('events')
   , merge = utils.merge
   , native = require('cli-native');
 
+var paused = new Error('paused');
+paused.paused = true;
+
 var schema;
 try{
   schema = require('async-validate');
@@ -182,14 +185,15 @@ Prompt.prototype.getDefaultPrompt = function() {
 }
 
 Prompt.prototype.exec = function(options, cb) {
+  options = options || {};
   options = this.merge(options);
+  cb = typeof cb === 'function' ? cb : function noop(){};
   var scope = this;
   var opts = {}, k;
   var trim = options.trim;
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
   this.emit('before', options, scope);
-  //console.dir(opts);
   read(opts, function(err, value) {
     if(err) return cb(err);
     var val = (value || '').trim();
@@ -209,6 +213,9 @@ Prompt.prototype.exec = function(options, cb) {
         return part;
       });
     }
+
+    //console.log('emitting value %j', options.key);
+    //console.log('emitting value %s', cb);
 
     scope.emit('value', val, options, scope);
 
@@ -237,35 +244,52 @@ Prompt.prototype.pause = function() {
   this._paused = true;
 }
 
-Prompt.prototype.resume = function(prompts, cb) {
+Prompt.prototype.resume = function(options, cb) {
+  if(!this._paused) return;
+  var scope = this;
   this._paused = false;
   if(this.options.infinite) {
-    this.run(prompts, cb);
+    this.exec(options || this.getDefaultPrompt(), cb);
   }
 }
 
-Prompt.prototype.run = function(prompts, cb) {
-  cb = cb || function(){};
+Prompt.prototype.prompt = function(options, cb) {
+  this.exec(options, cb);
+}
+
+Prompt.prototype.run = function(prompts, opts, cb) {
+  if(typeof opts === 'function') {
+    cb = opts;
+    opts = null;
+  }
+  cb = typeof cb === 'function' ? cb : function noop(){};
   var scope = this, options = this.options;
-  prompts = prompts || [];
+  prompts = prompts || [scope.getDefaultPrompt()];
+  opts = opts || {};
+  var infinite = opts.infinite === undefined
+    ? options.infinite : opts.infinite;
   var map = {};
   async.concatSeries(prompts, function(item, callback) {
     scope.exec(item, function(err, result) {
+      if(scope._paused) return callback(paused);
       if(item.key) {
         map[item.key] = result;
       }
       callback(err, result);
     });
   }, function(err, result) {
+    //if(scope._paused) return cb(new Error('paused'));
     if(err && err.cancel) return scope.emit('cancel', prompts, scope);
     if(err && err.timeout) return scope.emit('timeout', prompts, scope);
+    if(err && err.paused) return scope.emit('paused', prompts, scope);
     if(err) {
       scope.emit('error', prompts, scope);
     }
     scope.emit('complete', options, scope);
     cb(err, {list: result, map: map});
-    if(options.infinite && !scope._paused) {
-      scope.run(options.restore ? [scope.getDefaultPrompt()] : prompts, cb);
+    //console.log('run callback');
+    if(infinite && !scope._paused) {
+      scope.run(prompts, cb);
     }
   })
 }
