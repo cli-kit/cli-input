@@ -278,7 +278,6 @@ Prompt.prototype.run = function(prompts, opts, cb) {
       callback(err, result);
     });
   }, function(err, result) {
-    //if(scope._paused) return cb(new Error('paused'));
     if(err && err.cancel) return scope.emit('cancel', prompts, scope);
     if(err && err.timeout) return scope.emit('timeout', prompts, scope);
     if(err && err.paused) return scope.emit('paused', prompts, scope);
@@ -287,7 +286,6 @@ Prompt.prototype.run = function(prompts, opts, cb) {
     }
     scope.emit('complete', options, scope);
     cb(err, {list: result, map: map});
-    //console.log('run callback');
     if(infinite && !scope._paused) {
       scope.run(prompts, cb);
     }
@@ -305,25 +303,20 @@ prompt.errors = read.errors,
 prompt.sets = sets;
 module.exports = prompt;
 
-//module.exports = {
-  //read: read,
-  //prompt: prompt,
-  //errors: read.errors,
-  //sets: sets
-//}
-
-//var p = prompt({infinite: true});
-//p.on('before', function(options, ps) {
-//})
-//p.on('value', function(value, options, ps) {
-  //console.log('value: \'%s\' (%s)', value, typeof value);
-//})
-//p.on('complete', function(options, ps) {
-//})
-//p.on('error', function(err) {
-  //if(!err.cancel) console.error('error: ' + err.message);
-//})
-//p.run(sets.userpass, function(err, result) {
-  ////if(err && !err.cancel) console.error('error: ' + err.message);
-  ////console.dir(result);
-//});
+/*
+var p = prompt({infinite: true});
+p.on('before', function(options, ps) {
+})
+p.on('value', function(value, options, ps) {
+  console.log('value: \'%s\' (%s)', value, typeof value);
+})
+p.on('complete', function(options, ps) {
+})
+p.on('error', function(err) {
+  if(!err.cancel) console.error('error: ' + err.message);
+})
+p.run(sets.userpass, function(err, result) {
+  //if(err && !err.cancel) console.error('error: ' + err.message);
+  //console.dir(result);
+});
+*/

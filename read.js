@@ -1,6 +1,8 @@
 var readline = require('readline')
 var Mute = require('mute-stream')
-  , rl;
+  , rl
+  , rlopts
+  , history;
 
 var errors = {
   cancel: new Error('cancelled'),
@@ -18,6 +20,10 @@ function open(opts) {
   opts.output = opts.output || process.stdout
   opts.terminal = !!(opts.terminal || opts.output.isTTY)
   rl = readline.createInterface(opts)
+  if(history) {
+    rl.history = history;
+  }
+  rlopts = opts;
 }
 
 function close() {
@@ -29,11 +35,6 @@ function close() {
 }
 
 function read (opts, cb) {
-  if (typeof opts.default !== 'undefined' &&
-      typeof opts.default !== 'string' &&
-      typeof opts.default !== 'number') {
-    throw new Error('default value must be string or number')
-  }
   var input = opts.input || process.stdin
   var output = opts.output || process.stdout
   opts.rl = opts.rl || {};
@@ -44,36 +45,35 @@ function read (opts, cb) {
     , rlopts
     , m;
 
-  var def = opts.default || ''
-  if (def) {
-    if (silent) {
-      //prompt += '(<default hidden>) '
-    } else if (opts.edit) {
-      editDef = true
-    //} else {
-      //prompt += '(' + def + ') '
-    }
+  var def = '' + opts.default || '';
+  if (def && opts.edit) {
+    editDef = true;
   }
 
-  //var terminal = !!(opts.terminal || output.isTTY)
+  var terminal = !!(opts.terminal || output.isTTY)
+  var mrl;
+
+  if(!rl) {
+    open(opts.rl);
+  }
 
   if(silent) {
     m = new Mute({ replace: opts.replace, prompt: prompt })
     m.pipe(output, {end: false})
-    output = opts.rl.output = m
-  }
-
-  if(!rl || silent) {
-    open(opts.rl);
+    output = m;
+    history = rl.history;
+    rl.close();
+    mrl = readline.createInterface(
+      {input: input, output: output, terminal: terminal});
+    rl = mrl;
   }
 
   rl.setPrompt(prompt, opts.length || prompt.length);
   rl.prompt();
 
-  if (silent) {
-    //console.log('muting stream');
+  if(silent) {
     output.mute()
-  } else if (editDef) {
+  }else if (editDef) {
     rl.line = def
     rl.cursor = def.length
     rl._refreshLine()
@@ -101,7 +101,6 @@ function read (opts, cb) {
   }
 
   function done (err, line, isDefault) {
-
     rl.removeListener('line', onLine);
     rl.removeListener('error', onError);
     rl.removeAllListeners('SIGINT');
@@ -109,7 +108,9 @@ function read (opts, cb) {
     //console.log('read done() callback %s', rl.listeners('line').length);
 
     clearTimeout(timer);
-    if(output instanceof Mute) {
+    if(silent) {
+      mrl.close();
+      rl.resume();
       opts.rl.output = process.stdout;
       output.unmute()
       output.end()
@@ -125,7 +126,7 @@ function read (opts, cb) {
   }
 
   function onLine (line) {
-    if(output instanceof Mute) {
+    if(silent) {
       output.unmute()
       //output.write('\r\n')
     }
@@ -137,7 +138,7 @@ function read (opts, cb) {
       isDefault = true
       line = def
     }
-    //console.log('read got line %s', line);
+
     done(null, line, isDefault);
   }
 }
