@@ -74,9 +74,11 @@ HistoryFile.prototype.interpret = function(cmd, options) {
   var re = {
     is: /^!/,
     last: /^!!$/,
+    index: /^!(-?)([0-9])+/
   }
   if(!re.is.test(cmd)) return false;
 
+  // must shift first
   if(options.remove) {
     this._history.shift();
   }
@@ -84,6 +86,25 @@ HistoryFile.prototype.interpret = function(cmd, options) {
   if(re.last.test(cmd)) {
     val = this.start();
     ind = 0;
+  }else if(re.index.test(cmd)) {
+    ind = parseInt(cmd.replace(re.index, "$2"))
+    var negated = cmd.replace(re.index, "$1");
+    if(!isNaN(ind)) {
+      // history indices are 1 based
+      ind--;
+      // got a valid index
+      if(ind > -1 && ind < this.size()) {
+        if(negated) {
+          val = this._history[ind];
+        }else{
+          //console.log('positive %s', ind);
+          //console.dir(this._history);
+          ind = this.size() - ++ind;
+          val = this._history[ind];
+        }
+      }
+      console.log('got index reference %s', ind);
+    }
   }
 
   //console.dir(ind);
