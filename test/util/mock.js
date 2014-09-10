@@ -7,6 +7,9 @@ var mock = {
   base: base,
   target: target,
   file: file,
+  lines: [
+    'history item 1'
+  ]
 }
 
 module.exports = mock;

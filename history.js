@@ -41,12 +41,11 @@ HistoryStore.prototype._write = function(flush, cb) {
   //console.log('write to disc %s %s', this._checkpoint, this._history.length);
   var append = !contents;
   if(append) {
-    console.log('using line content');
     contents = this.getLines();
   }
 
   function write(cb) {
-    console.log('writing contents...');
+    //console.log('writing contents...');
     this._stream.write(contents, function onwrite(err) {
       if(err) return cb(err, scope);
       fs.stat(scope.file, function(err, stats) {
@@ -54,7 +53,7 @@ HistoryStore.prototype._write = function(flush, cb) {
         stats.file = scope.file;
         scope._stats = stats;
         if(!err) scope._checkpoint = scope._history.length;
-        console.log('write complete %s', cb);
+        //console.log('write complete %s', cb);
         return cb(err, scope);
       });
     });
