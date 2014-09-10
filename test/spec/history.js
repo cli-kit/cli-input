@@ -21,9 +21,16 @@ describe('cli-input:', function() {
       expect(err).to.eql(null);
       expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
+      expect(stash.file).to.be.a('string')
+        .to.eql(mock.file);
+      expect(stash.options).to.be.an('object');
       expect(stash.stats()).to.be.an('object');
       expect(contents).to.eql('');
       expect(stash.history()).to.eql([]);
+      expect(stash.position()).to.eql(0);
+      expect(stash.next()).to.eql(false);
+      expect(stash.previous()).to.eql(false);
+      expect(stash.reset()).to.eql(0);
       done();
     });
   });

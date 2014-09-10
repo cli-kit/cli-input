@@ -79,6 +79,7 @@ HistoryStore.prototype.reset = function() {
   }else{
     this._position = this._history.length - 1;
   }
+  return this._position;
 }
 
 /**
