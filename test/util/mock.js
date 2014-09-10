@@ -8,7 +8,8 @@ var mock = {
   target: target,
   file: file,
   lines: [
-    'history item 1'
+    'history item 1',
+    'history item 2'
   ]
 }
 

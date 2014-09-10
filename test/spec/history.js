@@ -64,6 +64,16 @@ describe('cli-input:', function() {
     })
   });
 
+  it('should add additional history line', function(done) {
+    stash.add(mock.lines[1], function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(mock.lines.slice(0, 2).join(EOL) + EOL);
+      done();
+    })
+  });
+
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);
