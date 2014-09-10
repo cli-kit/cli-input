@@ -75,10 +75,10 @@ function read (opts, cb) {
 
   if(silent) {
     output.mute()
-  }else if(editDef) {
-    rl.line = def
-    rl.cursor = def.length
-    rl._refreshLine()
+  }else if(opts.value) {
+    rl.line = '' + opts.value;
+    rl.cursor = opts.value.length;
+    rl._refreshLine();
   }
 
   var timer;

@@ -28,8 +28,6 @@ var HistoryFile = function(parent, options) {
     // overrides flush on modification
     options.flush = false;
     process.on('exit', function onexit() {
-      //console.log('exiting with %s lines', scope._history.length);
-      //console.dir(scope.getLines());
       var res = fs.writeFileSync(scope.file, scope.getLines(0));
       scope.emit('exit', res, scope);
     })
@@ -67,11 +65,6 @@ HistoryFile.prototype.size = HistoryFile.prototype.length;
 // intepreter
 
 HistoryFile.prototype.interpret = function(cmd, options) {
-  //var pos = this._mirror
-    //&& this._mirror.target
-    //&& typeof this._mirror.target.historyIndex === 'number'
-    //? this._mirror.target.historyIndex : this.position();
-  //console.dir(this._mirror.target.historyIndex);
   options = options || {};
   var val = false;
   var defs = merge(this.options.interpreter, {});
@@ -101,12 +94,6 @@ HistoryFile.prototype.interpret = function(cmd, options) {
       // history indices are 1 based
       ind--;
 
-      // at a position in the history
-      //if(pos > -1) {
-        //console.log('adjust on current position');
-        //ind = pos + num;
-      //}
-
       // got a valid index
       if(ind > -1 && ind < this.size()) {
         if(!negated) {
@@ -115,11 +102,8 @@ HistoryFile.prototype.interpret = function(cmd, options) {
         }
         val = this._history[ind];
       }
-      console.log('got index reference %s', ind);
     }
   }
-
-  //console.dir(ind);
 
   // update item in list with the expanded value
   if(options.replace && ind > -1 && ind < this.size()) {
@@ -518,7 +502,6 @@ HistoryFile.prototype._write = function(flush, cb) {
     , contents = typeof flush === 'string' || flush instanceof Buffer
       ? flush : null;
   if(!flush || this._checkpoint === this._history.length) return cb(null, scope);
-  //console.log('write to disc %s %s', this._checkpoint, this._history.length);
   var append = !contents;
   if(append) {
     contents = this.getLines();
