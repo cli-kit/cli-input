@@ -37,6 +37,7 @@ describe('cli-input:', function() {
     history({file: mock.file}, function(err, store, history) {
       stash = store;
       expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
       expect(contents).to.eql('');
       done();
@@ -46,6 +47,7 @@ describe('cli-input:', function() {
   it('should add history line', function(done) {
     stash.add(mock.lines[0], function(err) {
       expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
       expect(contents).to.eql(mock.lines[0] + EOL);
       done();
@@ -55,6 +57,7 @@ describe('cli-input:', function() {
   it('should ignore duplicate line', function(done) {
     stash.add(mock.lines[0], function(err) {
       expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
       expect(contents).to.eql(mock.lines[0] + EOL);
       done();
@@ -64,6 +67,7 @@ describe('cli-input:', function() {
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
       expect(contents).to.eql('');
       done();
