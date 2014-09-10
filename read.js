@@ -20,10 +20,12 @@ function open(opts) {
   opts.output = opts.output || process.stdout
   opts.terminal = !!(opts.terminal || opts.output.isTTY)
   rl = readline.createInterface(opts)
-  if(history) {
-    rl.history = history;
-  }
+  rl.history = history ? history : [];
+  //if(history) {
+    //rl.history = history;
+  //}
   rlopts = opts;
+  return rl;
 }
 
 function close() {
@@ -147,6 +149,8 @@ function read (opts, cb) {
   }
 }
 
+read.open = open;
+read.errors = errors;
+read.rl = rl;
+
 module.exports = read
-module.exports.errors = errors
-module.exports.rl = rl;

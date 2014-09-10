@@ -65,6 +65,10 @@ HistoryFile.prototype.mirror = function(target, field) {
   field = field || property;
   if(target && target.hasOwnProperty(field) && Array.isArray(target[field])) {
     this._mirror = {target: target, field: field};
+    console.log('assigning reference');
+    //if(this.mirrors()) {
+      this._mirror.target[this._mirror.field] = this._history;
+    //}
     return this._mirror;
   }
   return null;
@@ -307,7 +311,7 @@ HistoryFile.prototype.add = function(line, options, cb) {
     'history entry must be array or string');
 
   if(Array.isArray(line)) {
-    line = line.filter(function(item) {
+    line = line.map(function(item) {
       return '' + item;
     })
     this._assign(this._filter(line))
@@ -338,9 +342,6 @@ HistoryFile.prototype._assign = function(data, opts) {
     this._history = [].concat(data);
   }else{
     this._history = this._history.concat(data);
-  }
-  if(this.mirrors()) {
-    this._mirror.target[this._mirror.field] = this._history;
   }
   this.end();
 }
