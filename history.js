@@ -13,11 +13,9 @@ var stores = {};
 
 function noop(){};
 
-var HistoryFile = function(parent, options, lines) {
+var HistoryFile = function(parent, options) {
   var scope = this;
-
   options = options || {};
-  lines = this.readLines(lines);
   options.flush = options.flush !== undefined ? options.flush : true;
   options.duplicates = options.duplicates !== undefined
     ? options.duplicates : false;
@@ -35,7 +33,7 @@ var HistoryFile = function(parent, options, lines) {
   this.file = options.file;
   this.options = options;
   this._parent = parent;
-  this._history = lines;
+  this._history = [];
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
   this.reset();
