@@ -112,6 +112,7 @@ HistoryStore.prototype.import = function(content, cb) {
     })
   }
   // got string content, convert to an array
+  if(Array.isArray(content)) content = content.slice(0);
   if(typeof content === 'string') content = this.readLines(content);
   assert(Array.isArray(content),
     'invalid history content type, must be array or string');
@@ -121,7 +122,7 @@ HistoryStore.prototype.import = function(content, cb) {
   this._checkpoint = 0;
   // write out if we have callback
   if(typeof cb === 'function') {
-    this._write(this.getLines(), cb);
+    this._sync(cb);
   }
 }
 
@@ -200,7 +201,13 @@ HistoryStore.prototype.add = function(line, options, cb) {
   line = '' + line;
   line = line.replace(/\r?\n$/, '');
   this._history.push(line);
-  this._write(flush, cb);
+  var over = this._history.length > this.options.limit;
+  if(!over) {
+    this._write(flush, cb);
+  }else{
+    this._history.shift();
+    this._sync(cb);
+  }
 }
 
 /**
@@ -271,6 +278,17 @@ HistoryStore.prototype.close = function(cb) {
     this._stream.end();
     this._stream = null;
   }
+}
+
+/**
+ *  Write entire array to disc.
+ *
+ *  @param cb A callback function invoked when the
+ *  write completes or on error.
+ */
+HistoryStore.prototype._sync = function(cb) {
+  this._checkpoint = 0;
+  this._write(this.getLines(), cb);
 }
 
 /**

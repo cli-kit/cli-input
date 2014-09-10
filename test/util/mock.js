@@ -10,7 +10,8 @@ var mock = {
   lines: [
     'history item 1',
     'history item 2'
-  ]
+  ],
+  extra: 'history item 3'
 }
 
 module.exports = mock;

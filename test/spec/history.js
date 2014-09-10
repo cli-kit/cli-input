@@ -114,6 +114,25 @@ describe('cli-input:', function() {
     })
   });
 
+  it('should respect limit', function(done) {
+    stash.options.limit = 2;
+    var expected = [mock.lines[1], mock.extra];
+    stash.import(mock.lines, function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      stash.add(mock.extra, function(err) {
+        expect(err).to.eql(null);
+        expect(stash.isFlushed()).to.eql(true);
+        expect(stash.history().length).to.eql(stash.options.limit);
+        expect(stash.history()).to.eql(expected);
+        var contents = fsutil.text(mock.file);
+        //console.dir(contents);
+        expect(contents).to.eql(expected.join(EOL) + EOL);
+        done();
+      })
+    })
+  });
+
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);
