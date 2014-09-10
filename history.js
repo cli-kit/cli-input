@@ -223,7 +223,7 @@ HistoryFile.prototype.import = function(content, cb) {
       if(err) return cb(err, null, scope);
       scope.stats(function(err) {
         if(err) return cb(err);
-        scope._history = scope.readLines(content);
+        scope._assign(scope.readLines(content), {overwrite: true});
         scope._success();
         cb(null, content, scope);
       })
@@ -303,7 +303,6 @@ HistoryFile.prototype.add = function(line, options, cb) {
     line = line.filter(function(item) {
       return '' + item;
     })
-    //this._history = this._history.concat(this._filter(line));
     this._assign(this._filter(line))
   }else if(typeof line === 'string') {
     if(!this._matches(line)) {
@@ -311,7 +310,6 @@ HistoryFile.prototype.add = function(line, options, cb) {
     }
     line = '' + line;
     line = line.replace(/\r?\n$/, '');
-    //this._history.push(line);
     this._assign(line);
   }
 
@@ -393,7 +391,7 @@ HistoryFile.prototype.clear = function(cb) {
   fs.writeFile(this.file, '', function(err) {
     /* istanbul ignore if */
     if(err) return cb(err, scope);
-    scope._history = [];
+    scope._assign([], {overwrite: true});
     scope._success();
     cb(null, scope);
   })
