@@ -28,7 +28,9 @@ var HistoryFile = function(parent, options) {
     // overrides flush on modification
     options.flush = false;
     process.on('exit', function onexit() {
-      var res = fs.writeFileSync(scope.file, scope.getLines());
+      //console.log('exiting with %s lines', scope._history.length);
+      //console.dir(scope.getLines());
+      var res = fs.writeFileSync(scope.file, scope.getLines(0));
       scope.emit('exit', res, scope);
     })
   }
@@ -46,6 +48,28 @@ var HistoryFile = function(parent, options) {
 }
 
 util.inherits(HistoryFile, events.EventEmitter);
+
+HistoryFile.prototype.length = function() {
+  return this._history.length;
+}
+
+HistoryFile.prototype.size = HistoryFile.prototype.length;
+
+// intepreter
+
+HistoryFile.prototype.interpret = function(cmd, options) {
+  options = options || {};
+  if(!cmd || typeof cmd !== 'string') return false;
+  var re = {
+    is: /^!/,
+    last: /^!!$/,
+  }
+  if(!re.is.test(cmd)) return false;
+  if(re.last.test(cmd)) {
+    return this.end();
+  }
+  return false;
+}
 
 // mirroring
 
@@ -65,20 +89,10 @@ HistoryFile.prototype.mirror = function(target, field) {
   field = field || property;
   if(target && target.hasOwnProperty(field) && Array.isArray(target[field])) {
     this._mirror = {target: target, field: field};
-    console.log('assigning reference');
-    //if(this.mirrors()) {
-      this._mirror.target[this._mirror.field] = this._history;
-    //}
+    this._mirror.target[this._mirror.field] = this._history;
     return this._mirror;
   }
   return null;
-}
-
-/**
- *  Determines if we are mirroring.
- */
-HistoryFile.prototype.mirrors = function() {
-  return this._mirror && this._mirror.target && this._mirror.field;
 }
 
 // positional functions
@@ -198,8 +212,9 @@ HistoryFile.prototype.readLines = function(lines) {
  *  @param length The end index into the history array.
  */
 HistoryFile.prototype.getLines = function(checkpoint, length) {
-  var lines = this._history.slice(
-    checkpoint || this._checkpoint, length || this._history.length);
+  var cp = checkpoint !== undefined ? checkpoint : this._checkpoint;
+  var len = length !== undefined ? length : this._history.length;
+  var lines = this._history.slice(cp, len)
   lines = this._filter(lines);
   // add trailing newline
   if(lines[lines.length - 1]) {
