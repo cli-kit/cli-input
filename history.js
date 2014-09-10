@@ -35,6 +35,7 @@ var HistoryFile = function(parent, options) {
     })
   }
 
+  options.mode = options.mode || 0600;
   options.interpreter = options.interpreter ||
     {
       replace: true,    // replace expanded items
@@ -47,7 +48,8 @@ var HistoryFile = function(parent, options) {
   this.options = options;
   this._parent = parent;
   this._history = [];
-  this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
+  this._stream = fs.createWriteStream(
+    this.file, {flags: 'a+', mode: this.options.mode});
   this._stats = null;
   this._mirror = this.mirror(mirrors.target, mirrors.field);
   this._success();
