@@ -4,7 +4,9 @@ var EOL = require('os').EOL
   , path = require('path')
   , touch = require('touch')
   , util = require('util')
-  , events = require('events');
+  , events = require('events')
+  , utils = require('cli-util')
+  , uniq = utils.uniq;
 
 var stores = {};
 
@@ -12,12 +14,7 @@ function noop(){};
 
 var HistoryStore = function(parent, options, lines) {
   options = options || {};
-  lines = lines.split('\n');
-  lines = lines.filter(function(line) {
-    line = line.replace(/\r$/, '');
-    line = line.trim();
-    return line;
-  })
+  lines = this.readLines(lines);
   options.flush = options.flush !== undefined ? options.flush : true;
   options.duplicates = options.duplicates !== undefined
     ? options.duplicates : false;
@@ -29,6 +26,49 @@ var HistoryStore = function(parent, options, lines) {
   this._checkpoint = this._history.length;
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
+}
+
+HistoryStore.prototype.readLines = function(lines) {
+  if(!lines) return [];
+  if(lines instanceof Buffer) lines = '' + lines;
+  lines = lines.split('\n');
+  lines = lines.filter(function(line) {
+    line = line.replace(/\r$/, '');
+    line = line.trim();
+    return line;
+  })
+  if(!this.options.duplicates) {
+    lines = uniq(lines);
+  }
+  return lines;
+}
+
+HistoryStore.prototype.import = function(content, cb) {
+  var scope = this;
+  // no content so read the file and import the data
+  if(typeof content === 'function') {
+    cb = content;
+    return fs.readFile(this.file, function(err, content) {
+      if(err) return cb(err, null, scope);
+      scope._history = scope.readLines(content);
+      scope._checkpoint = scope._history.length;
+      cb(null, content, scope);
+    })
+  }
+  // got string content, convert to an array
+  if(typeof content === 'string') content = this.readLines(content);
+  assert(Array.isArray(content),
+    'invalid history content type, must be array or string');
+
+  // update internal representation
+  this._history = content;
+  // write out if we have callback
+  if(typeof cb === 'function') {
+    this._write(this.getLines(), cb);
+  // assuming we just read in from the file
+  }else{
+    this._checkpoint = this._history.length;
+  }
 }
 
 HistoryStore.prototype.isFlushed = function() {
@@ -82,6 +122,17 @@ HistoryStore.prototype.getLines = function(checkpoint, length) {
   }
   return lines.join(EOL);
 }
+
+HistoryStore.prototype.read = function(options, cb) {
+  if(typeof options === 'function') {
+    cb = options;
+    options = null;
+  }
+  options = options || {};
+  cb = typeof cb === 'function' ? cb : noop;
+  return this.import(cb);
+}
+
 
 HistoryStore.prototype.add = function(line, options, cb) {
   if(typeof options === 'function') {

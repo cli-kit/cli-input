@@ -85,6 +85,30 @@ describe('cli-input:', function() {
     })
   });
 
+  it('should close history file stream', function(done) {
+    stash.close(done);
+  });
+
+  it('should open history file', function(done) {
+    history({file: mock.file}, function(err, store, history) {
+      stash = store;
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(mock.lines[0] + EOL);
+      done();
+    });
+  });
+
+  it('should read history file', function(done) {
+    stash.read(function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(mock.lines[0] + EOL);
+      done();
+    })
+  });
 
   it('should clear history file', function(done) {
     stash.clear(function(err) {
@@ -94,10 +118,5 @@ describe('cli-input:', function() {
       expect(contents).to.eql('');
       done();
     })
-  });
-
-  it('should close history file stream', function(done) {
-    stash.close(done);
-    //done();
   });
 });
