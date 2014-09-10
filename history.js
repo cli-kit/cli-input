@@ -6,7 +6,9 @@ var fs = require('fs')
 
 var stores = {};
 
-var HistoryStore = function(file, lines) {
+var HistoryStore = function(options, file, lines) {
+  options = options || {};
+  this.options = options;
   this.file = file;
   lines = lines.split('\n');
   lines = lines.filter(function(line) {
@@ -15,6 +17,7 @@ var HistoryStore = function(file, lines) {
     return line;
   })
   this.history = lines;
+  //console.dir(this.history);
 }
 
 var History = function(options) {
@@ -26,6 +29,7 @@ var History = function(options) {
 util.inherits(History, events.EventEmitter);
 
 History.prototype.load = function(options, cb) {
+  var scope = this;
   if(typeof options === 'function') {
     cb = options;
     options = null;
@@ -41,20 +45,20 @@ History.prototype.load = function(options, cb) {
   }
   function touch() {
     var st = fs.createWriteStream(file, function(err) {
-      if(err) return cb(err);
+      if(err) return cb(err, null, scope);
       st.end();
       st.destroy();
       load(options, cb);
     });
   }
   fs.readFile(file, function(err, contents) {
-    if(err.code === 'ENOENT' && create) {
+    if(err && err.code === 'ENOENT' && create) {
       return touch();
     }
-    if(err) return cb(err);
-    var store = new HistoryStore(file, contents);
+    if(err) return cb(err, null, scope);
+    var store = new HistoryStore(scope.options, file, '' + contents);
     stores[file] = store;
-    cb(null, store);
+    cb(null, store, scope);
   })
 }
 

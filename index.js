@@ -378,9 +378,10 @@ prompt.history = history;
 prompt.History = history.History;
 module.exports = prompt;
 
-var h = history({file: process.env.HOME + '/.rlx/.history'}, function(err, store) {
+var h = history({file: process.env.HOME + '/.rlx/.history'}, function(err, store, hs) {
   if(err) return console.error(err);
-  console.log('loaded history');
+  //console.log('loaded history');
+  console.dir(hs.getStore());
 });
 
 //var p = prompt({repeat: true});
