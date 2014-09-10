@@ -75,7 +75,7 @@ function read (opts, cb) {
 
   if(silent) {
     output.mute()
-  }else if (editDef) {
+  }else if(editDef) {
     rl.line = def
     rl.cursor = def.length
     rl._refreshLine()
@@ -102,7 +102,7 @@ function read (opts, cb) {
     }, timeout)
   }
 
-  function done (err, line, isDefault) {
+  function done (err, line) {
     rl.removeListener('line', onLine);
     rl.removeListener('error', onError);
     rl.removeAllListeners('SIGINT');
@@ -124,7 +124,7 @@ function read (opts, cb) {
     if(line == "undefined") line = '';
 
     if(err) return cb(err, null, null, rl);
-    cb(null, line, isDefault, rl)
+    cb(null, line, rl)
   }
 
   function onError (err) {
@@ -139,13 +139,13 @@ function read (opts, cb) {
 
     // truncate the \n at the end.
     line = line.replace(/\r?\n$/, '')
-    var isDefault = !!(editDef && line === def)
-    if (def && !line) {
-      isDefault = true
-      line = def
-    }
+    //var isDefault = !!(editDef && line === def)
+    //if (def && !line) {
+      //isDefault = true
+      //line = def
+    //}
 
-    done(null, line, isDefault);
+    done(null, line);
   }
 }
 

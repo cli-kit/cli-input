@@ -216,7 +216,7 @@ Prompt.prototype.exec = function(options, cb) {
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
   this.emit('before', options, scope);
-  read(opts, function(err, value, isDefault, rl) {
+  read(opts, function(err, value, rl) {
     if(err) return cb(err);
     //console.log('got read value "%s" (%s)', value, typeof value);
     var val = (value || '').trim();
