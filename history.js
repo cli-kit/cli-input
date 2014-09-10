@@ -68,14 +68,19 @@ HistoryStore.prototype.parent = function() {
 HistoryStore.prototype.readLines = function(lines) {
   if(!lines) return [];
   if(lines instanceof Buffer) lines = '' + lines;
-  lines = lines.split('\n');
-  lines = lines.filter(function(line) {
-    line = line.replace(/\r$/, '');
-    line = line.trim();
-    return line;
-  })
+  if(typeof lines === 'string') {
+    lines = lines.split('\n');
+    lines = lines.filter(function(line) {
+      line = line.replace(/\r$/, '');
+      line = line.trim();
+      return line;
+    })
+  }
   if(!this.options.duplicates) {
     lines = uniq(lines);
+  }
+  if(lines.length > this.options.limit) {
+    lines = lines.slice(lines.length - this.options.limit);
   }
   return lines;
 }
@@ -112,7 +117,7 @@ HistoryStore.prototype.import = function(content, cb) {
     })
   }
   // got string content, convert to an array
-  if(Array.isArray(content)) content = content.slice(0);
+  if(Array.isArray(content)) content = this.readLines(content.slice(0));
   if(typeof content === 'string') content = this.readLines(content);
   assert(Array.isArray(content),
     'invalid history content type, must be array or string');

@@ -114,7 +114,7 @@ describe('cli-input:', function() {
     })
   });
 
-  it('should respect limit', function(done) {
+  it('should respect limit on add', function(done) {
     stash.options.limit = 2;
     var expected = [mock.lines[1], mock.extra];
     stash.import(mock.lines, function(err) {
@@ -132,6 +132,23 @@ describe('cli-input:', function() {
       })
     })
   });
+
+
+  it('should respect limit on import array', function(done) {
+    stash.options.limit = 2;
+    var lines = ['1','2','3'];
+    var expected = ['2', '3'];
+    stash.import(lines, function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      expect(stash.history().length).to.eql(stash.options.limit);
+      expect(stash.history()).to.eql(expected);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(expected.join(EOL) + EOL);
+      done();
+    })
+  });
+
 
   it('should clear history file', function(done) {
     stash.clear(function(err) {
