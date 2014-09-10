@@ -230,18 +230,4 @@ describe('cli-input:', function() {
       done();
     })
   });
-
-  //it('should fire exit event', function(done) {
-    //var opts = {
-      //exit: true,
-      //file: mock.file
-    //}
-    //var lines = ['a', 'b', 'c'];
-    ////var expected = lines.slice(1);
-    //history(opts, function(err, store, history) {
-      //store.once('exit', function() {
-        //done();
-      //});
-    //});
-  //});
 });

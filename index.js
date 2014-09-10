@@ -389,38 +389,38 @@ prompt.history = history;
 prompt.History = history.History;
 module.exports = prompt;
 
-var h = history({file: process.env.HOME + '/.rlx/.history', close: true},
-  function(err, store, hs) {
-    if(err) return console.error(err);
-    //console.log('loaded history');
-    //console.dir(hs.getStore());
-    //
+//var h = history({file: process.env.HOME + '/.rlx/.history', exit: true},
+  //function(err, store, hs) {
+    //if(err) return console.error(err);
+    ////console.log('loaded history');
+    ////console.dir(hs.getStore());
+    ////
 
-    var p = prompt({infinite: true, history: store});
-    var res = store.mirror(p.readline, null, true);
-    p.on('cancel', function() {
-      process.exit();
-    })
-    p.on('value', function(val) {
-      //console.log('val: %s', val);
-      var histitem = store.interpret(val);
-      console.log('got interpreted history item %s', histitem);
-      //console.dir(p.readline);
-      //console.dir(p.readline.history);
-      //console.dir(store.history());
-    })
-    //console.log('start readline history: %s', p.readline.history);
-    p.run(function(err, result) {
-      //console.dir(p.rl.history);
-      //store.add([1,2,3], function() {
-        ////console.log('added');
-        ////console.dir(store.history());
-        ////console.dir(store.history() === p.readline.history);
-      //})
-      //console.dir(result);
-    });
-  }
-);
+    //var p = prompt({infinite: true, history: store});
+    //var res = store.mirror(p.readline, null, true);
+    //p.on('cancel', function() {
+      //process.exit();
+    //})
+    //p.on('value', function(val) {
+      ////console.log('val: %s', val);
+      //var histitem = store.interpret(val);
+      //console.log('got interpreted history item %s', histitem);
+      ////console.dir(p.readline);
+      ////console.dir(p.readline.history);
+      ////console.dir(store.history());
+    //})
+    ////console.log('start readline history: %s', p.readline.history);
+    //p.run(function(err, result) {
+      ////console.dir(p.rl.history);
+      ////store.add([1,2,3], function() {
+        //////console.log('added');
+        //////console.dir(store.history());
+        //////console.dir(store.history() === p.readline.history);
+      ////})
+      ////console.dir(result);
+    //});
+  //}
+//);
 
 //var p = prompt({repeat: true});
 //p.run(sets.confirm, function(er, result) {

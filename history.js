@@ -24,7 +24,7 @@ var HistoryFile = function(parent, options) {
   options.limit = options.limit === 'number' ? options.limit : 2048;
 
   // flush on process close
-  if(options.close) {
+  if(options.exit === true) {
     // overrides flush on modification
     options.flush = false;
     process.on('exit', function onexit() {
