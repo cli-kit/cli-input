@@ -79,11 +79,32 @@ HistoryStore.prototype.readLines = function(lines) {
   if(!this.options.duplicates) {
     lines = uniq(lines);
   }
+  lines = this._filter(lines);
   if(lines.length > this.options.limit) {
     lines = lines.slice(lines.length - this.options.limit);
   }
   return lines;
 }
+
+/**
+ *  Get a string of lines from the underlying arrat of lines.
+ *
+ *  Includes a trailing newline.
+ *
+ *  @param checkpoint The start index into the history array.
+ *  @param length The end index into the history array.
+ */
+HistoryStore.prototype.getLines = function(checkpoint, length) {
+  var lines = this._history.slice(
+    checkpoint || this._checkpoint, length || this._history.length);
+  lines = this._filter(lines);
+  // add trailing newline
+  if(lines[lines.length - 1]) {
+    lines.push('');
+  }
+  return lines.join(EOL);
+}
+
 
 /**
  *  Import into this history store.
@@ -140,24 +161,6 @@ HistoryStore.prototype.import = function(content, cb) {
  */
 HistoryStore.prototype.isFlushed = function() {
   return this._checkpoint === this._history.length;
-}
-
-/**
- *  Get a string of lines from the underlying arrat of lines.
- *
- *  Includes a trailing newline.
- *
- *  @param checkpoint The start index into the history array.
- *  @param length The end index into the history array.
- */
-HistoryStore.prototype.getLines = function(checkpoint, length) {
-  var lines = this._history.slice(
-    checkpoint || this._checkpoint, length || this._history.length);
-  // add trailing newline
-  if(lines[lines.length - 1]) {
-    lines.push('');
-  }
-  return lines.join(EOL);
 }
 
 /**
@@ -342,6 +345,33 @@ HistoryStore.prototype._write = function(flush, cb) {
   }
 }
 
+/**
+ *  @private
+ *
+ *  Filter lines that match an ignore pattern.
+ *
+ *  @param lines Array of lines.
+ *
+ *  @return Filtered array of lines or the original array
+ *  if no ignore patterns are configured.
+ */
+HistoryStore.prototype._filter = function(lines) {
+  if(!this.options.ignores) return lines;
+  var ignores = this.options.ignores || [];
+  if(ignores instanceof RegExp) {
+    ignores = [ignores];
+  }
+  return lines.filter(function(line) {
+    var i, re;
+    for(i = 0;i < ignores.length;i++) {
+      re = ignores[i];
+      if((re instanceof RegExp) && re.test(line)) {
+        return false;
+      }
+    }
+    return line;
+  })
+}
 
 var History = function(options) {
   options = options || {};

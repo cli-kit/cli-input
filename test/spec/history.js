@@ -133,7 +133,6 @@ describe('cli-input:', function() {
     })
   });
 
-
   it('should respect limit on import array', function(done) {
     stash.options.limit = 2;
     var lines = ['1','2','3'];
