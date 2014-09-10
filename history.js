@@ -45,7 +45,6 @@ HistoryStore.prototype.stats = function(cb) {
       if(err) return cb(err, scope);
       stats.file = scope.file;
       scope._stats = stats;
-      scope._checkpoint = scope._history.length;
       return cb(err, scope);
     });
   }
@@ -292,7 +291,11 @@ HistoryStore.prototype._write = function(flush, cb) {
   function write(stream, cb) {
     stream.write(contents, function onwrite(err) {
       if(err) return cb(err, scope);
-      scope.stats(cb);
+      scope.stats(function(err) {
+        if(err) return cb(err, scope);
+        scope._checkpoint = scope._history.length;
+        cb(null, scope);
+      });
     });
   }
   if(!append) {
