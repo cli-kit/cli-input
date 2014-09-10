@@ -39,7 +39,7 @@ var HistoryStore = function(parent, options, lines) {
   this._history = lines;
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
-  this._position = 0;
+  this.reset();
   this._success();
 }
 
@@ -71,6 +71,14 @@ HistoryStore.prototype.previous = function() {
     return this._history[pos];
   }
   return false;
+}
+
+HistoryStore.prototype.reset = function() {
+  if(!this._history.length) {
+    this._position = 0;
+  }else{
+    this._position = this._history.length - 1;
+  }
 }
 
 /**
