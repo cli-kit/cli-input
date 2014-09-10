@@ -3,6 +3,7 @@ var events = require('events')
   , path = require('path')
   , async = require('async')
   , read = require('./read')
+  , history = require('./history')
   , utils = require('cli-util')
   , merge = utils.merge
   , native = require('cli-native');
@@ -373,6 +374,8 @@ var sets = require('./sets');
 prompt.read = read;
 prompt.errors = read.errors,
 prompt.sets = sets;
+prompt.history = history;
+prompt.History = history.History;
 module.exports = prompt;
 
 //var p = prompt({repeat: true});
