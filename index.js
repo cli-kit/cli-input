@@ -135,7 +135,6 @@ Prompt.prototype.replace = function(format, source, options) {
     // get colorized values
     if(highlights
       && typeof this.options.colors[k] === 'function' && !replaces) {
-      //console.log('colorize on %s', k);
       items[k].c = this.options.colors[k](v);
     }
   }
@@ -331,16 +330,20 @@ Prompt.prototype.prompt = function(options, cb) {
 }
 
 Prompt.prototype.run = function(prompts, opts, cb) {
+  if(typeof prompts === 'function') {
+    cb = prompts;
+    prompts = null;
+  }
   if(typeof opts === 'function') {
     cb = opts;
     opts = null;
   }
   cb = typeof cb === 'function' ? cb : function noop(){};
+  opts = opts || {};
   var scope = this, options = this.options;
   prompts = prompts || [scope.getDefaultPrompt()];
-  opts = opts || {};
-  var infinite = opts.infinite === undefined
-    ? options.infinite : opts.infinite;
+  var defs = merge(this.options, {});
+  opts = merge(opts, defs);
   var map = {};
   async.concatSeries(prompts, function(item, callback) {
     scope.exec(item, function(err, result) {
@@ -357,11 +360,12 @@ Prompt.prototype.run = function(prompts, opts, cb) {
     if(err) {
       scope.emit('error', prompts, scope);
     }
-    scope.emit('complete', options, scope);
-    cb(err, {list: result, map: map});
-    if(infinite && !scope._paused) {
-      scope.run(prompts, cb);
+    if(opts.infinite && !scope._paused) {
+      return scope.run(prompts, opts, cb);
     }
+    var res = {list: result, map: map};
+    scope.emit('complete', res);
+    cb(null, res);
   })
 }
 
@@ -378,16 +382,20 @@ prompt.history = history;
 prompt.History = history.History;
 module.exports = prompt;
 
-//var h = history({file: process.env.HOME + '/.rlx/.history', close: true},
-  //function(err, store, hs) {
-    //if(err) return console.error(err);
-    ////console.log('loaded history');
-    ////console.dir(hs.getStore());
+var h = history({file: process.env.HOME + '/.rlx/.history', close: true},
+  function(err, store, hs) {
+    if(err) return console.error(err);
+    //console.log('loaded history');
+    //console.dir(hs.getStore());
+    //
 
-    //store.add('line: ' + Math.random(), function(err, store) {
-    //});
-  //}
-//);
+    var p = prompt({infinite: true});
+    p.run(function(err, result) {
+      console.dir(result);
+      process.exit();
+    });
+  }
+);
 
 //var p = prompt({repeat: true});
 //p.run(sets.confirm, function(er, result) {

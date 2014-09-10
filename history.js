@@ -339,6 +339,9 @@ HistoryFile.prototype._assign = function(data, opts) {
   }else{
     this._history = this._history.concat(data);
   }
+  if(this.mirrors()) {
+    this._mirror.target[this._mirror.field] = this._history;
+  }
   this.end();
 }
 
