@@ -25,28 +25,60 @@ var HistoryStore = function(parent, options, lines) {
   this._history = lines;
   this._checkpoint = this._history.length;
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
+  this._stats = null;
 }
 
 HistoryStore.prototype.isFlushed = function() {
   return this._checkpoint === this._history.length;
 }
 
-HistoryStore.prototype.write = function(flush, cb) {
-  var scope = this;
+HistoryStore.prototype._write = function(flush, cb) {
+  var scope = this
+    , contents = typeof flush === 'string' || flush instanceof Buffer
+      ? flush : null;
   if(!flush || this._checkpoint === this._history.length) return cb(null, scope);
   //console.log('write to disc %s %s', this._checkpoint, this._history.length);
-  var lines = this._history.slice(this._checkpoint, this._history.length);
+  var append = !contents;
+  if(append) {
+    console.log('using line content');
+    contents = this.getLines();
+  }
+
+  function write(cb) {
+    console.log('writing contents...');
+    this._stream.write(contents, function onwrite(err) {
+      if(err) return cb(err, scope);
+      fs.stat(scope.file, function(err, stats) {
+        if(err) return cb(err, scope);
+        stats.file = scope.file;
+        scope._stats = stats;
+        if(!err) scope._checkpoint = scope._history.length;
+        console.log('write complete %s', cb);
+        return cb(err, scope);
+      });
+    });
+  }
+  //console.log('write to disc %j', append);
+  if(!append) {
+    this._stream.close();
+    this._stream = fs.createWriteStream(this.file, {flags: 'w+'});
+    write.call(scope, function(err) {
+      if(err) return cb(err, scope);
+      cb(null, scope);
+    });
+  }else{
+    write.call(scope, cb);
+  }
+}
+
+HistoryStore.prototype.getLines = function(checkpoint, length) {
+  var lines = this._history.slice(
+    checkpoint || this._checkpoint, length || this._history.length);
   // add trailing newline
   if(lines[lines.length - 1]) {
     lines.push('');
   }
-  var append = lines.join(EOL);
-  //console.log('write to disc %j', append);
-  this._stream.write(append, function(err) {
-    if(!err) scope._checkpoint = scope._history.length;
-    return cb(err, scope);
-  });
-
+  return lines.join(EOL);
 }
 
 HistoryStore.prototype.add = function(line, options, cb) {
@@ -66,7 +98,12 @@ HistoryStore.prototype.add = function(line, options, cb) {
   line = '' + line;
   line = line.replace(/\r?\n$/, '');
   this._history.push(line);
-  this.write(flush, cb);
+  this._write(flush, cb);
+}
+
+HistoryStore.prototype.pop = function() {
+  var item = this._history.pop();
+  var contents = this.getLines();
 }
 
 //HistoryStore.prototype.close = function
