@@ -27,8 +27,7 @@ var HistoryFile = function(parent, options, lines) {
   if(options.close) {
     // don't flush on modification
     options.flush = false;
-    process.on('exit', function() {
-      console.log('flush on exit');
+    process.on('exit', function onexit() {
       fs.writeFileSync(scope.file, scope.getLines());
     })
   }
@@ -43,6 +42,7 @@ var HistoryFile = function(parent, options, lines) {
   this._success();
 }
 
+// POSITIONAL FUNCTIONS
 HistoryFile.prototype.end = function() {
   this._position = this._history.length ? this._history.length - 1 : 0;
   return !this._history.length ? false : this._history[this._position];
@@ -100,6 +100,13 @@ HistoryFile.prototype.history = function() {
 }
 
 /**
+ *  Get the parent History instance.
+ */
+HistoryFile.prototype.parent = function() {
+  return this._parent;
+}
+
+/**
  *  Get the underlying file stats.
  */
 HistoryFile.prototype.stats = function(cb) {
@@ -113,13 +120,6 @@ HistoryFile.prototype.stats = function(cb) {
     });
   }
   return this._stats;
-}
-
-/**
- *  Get the parent History instance.
- */
-HistoryFile.prototype.parent = function() {
-  return this._parent;
 }
 
 /**
