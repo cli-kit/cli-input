@@ -31,7 +31,24 @@ describe('cli-input:', function() {
       expect(stash.next()).to.eql(false);
       expect(stash.previous()).to.eql(false);
       expect(stash.reset()).to.eql(0);
-      done();
+
+      stash.add(['a', 'b', 'c'], function(){
+        //console.dir(stash.history());
+        expect(stash.position()).to.eql(2);
+        expect(stash.next()).to.eql(false);
+        expect(stash.previous()).to.eql('b');
+        expect(stash.previous()).to.eql('a');
+        expect(stash.previous()).to.eql(false);
+        stash.add(['d'], function(){
+          expect(stash.position()).to.eql(3);
+          expect(stash.start()).to.eql('a');
+          expect(stash.end()).to.eql('d');
+          expect(stash.move(1)).to.eql('b');
+          expect(stash.move(16)).to.eql(false);
+          expect(stash.move(-1)).to.eql(false);
+          stash.clear(done);
+        });
+      });
     });
   });
 
