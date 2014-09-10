@@ -13,7 +13,7 @@ var stores = {};
 
 function noop(){};
 
-var HistoryStore = function(parent, options, lines) {
+var HistoryFile = function(parent, options, lines) {
   var scope = this;
 
   options = options || {};
@@ -43,11 +43,11 @@ var HistoryStore = function(parent, options, lines) {
   this._success();
 }
 
-HistoryStore.prototype.position = function(index) {
+HistoryFile.prototype.position = function(index) {
   return this._position;
 }
 
-HistoryStore.prototype.go = function(index) {
+HistoryFile.prototype.go = function(index) {
   if(index > -1 && index < this._history.length) {
     this._position = index;
     return this._history[index];
@@ -55,7 +55,7 @@ HistoryStore.prototype.go = function(index) {
   return false;
 }
 
-HistoryStore.prototype.next = function() {
+HistoryFile.prototype.next = function() {
   var pos = this._position + 1;
   if(pos < this._history.length) {
     this._position = pos;
@@ -64,7 +64,7 @@ HistoryStore.prototype.next = function() {
   return false;
 }
 
-HistoryStore.prototype.previous = function() {
+HistoryFile.prototype.previous = function() {
   var pos = this._position - 1;
   if(pos > -1 && this._history.length) {
     this._position = pos;
@@ -73,7 +73,7 @@ HistoryStore.prototype.previous = function() {
   return false;
 }
 
-HistoryStore.prototype.reset = function() {
+HistoryFile.prototype.reset = function() {
   if(!this._history.length) {
     this._position = 0;
   }else{
@@ -85,14 +85,14 @@ HistoryStore.prototype.reset = function() {
 /**
  *  Get the underlying history array.
  */
-HistoryStore.prototype.history = function() {
+HistoryFile.prototype.history = function() {
   return this._history;
 }
 
 /**
  *  Get the underlying file stats.
  */
-HistoryStore.prototype.stats = function(cb) {
+HistoryFile.prototype.stats = function(cb) {
   var scope = this;
   if(typeof cb === 'function') {
     fs.stat(this.file, function(err, stats) {
@@ -108,7 +108,7 @@ HistoryStore.prototype.stats = function(cb) {
 /**
  *  Get the parent History instance.
  */
-HistoryStore.prototype.parent = function() {
+HistoryFile.prototype.parent = function() {
   return this._parent;
 }
 
@@ -119,7 +119,7 @@ HistoryStore.prototype.parent = function() {
  *
  *  @return An array of lines.
  */
-HistoryStore.prototype.readLines = function(lines) {
+HistoryFile.prototype.readLines = function(lines) {
   if(!lines) return [];
   if(lines instanceof Buffer) lines = '' + lines;
   if(typeof lines === 'string') {
@@ -148,7 +148,7 @@ HistoryStore.prototype.readLines = function(lines) {
  *  @param checkpoint The start index into the history array.
  *  @param length The end index into the history array.
  */
-HistoryStore.prototype.getLines = function(checkpoint, length) {
+HistoryFile.prototype.getLines = function(checkpoint, length) {
   var lines = this._history.slice(
     checkpoint || this._checkpoint, length || this._history.length);
   lines = this._filter(lines);
@@ -176,7 +176,7 @@ HistoryStore.prototype.getLines = function(checkpoint, length) {
  *  @param cb A callback function invoked when the history
  *  has been synced to disc or on error.
  */
-HistoryStore.prototype.import = function(content, cb) {
+HistoryFile.prototype.import = function(content, cb) {
   var scope = this;
   // no content so read the file and import the data
   if(typeof content === 'function') {
@@ -213,7 +213,7 @@ HistoryStore.prototype.import = function(content, cb) {
  *  @return A boolean indicating if the internal checkpoint is at
  *  the end of the history array.
  */
-HistoryStore.prototype.isFlushed = function() {
+HistoryFile.prototype.isFlushed = function() {
   return this._checkpoint === this._history.length;
 }
 
@@ -224,7 +224,7 @@ HistoryStore.prototype.isFlushed = function() {
  *  @param cb A callback function invoked when the history
  *  has been read from disc or on error.
  */
-HistoryStore.prototype.read = function(cb) {
+HistoryFile.prototype.read = function(cb) {
   var scope = this;
   cb = typeof cb === 'function' ? cb : noop;
   return this.import(function(err) {
@@ -246,7 +246,7 @@ HistoryStore.prototype.read = function(cb) {
  *  @param cb A callback function invoked when the history
  *  has been synced to disc or on error.
  */
-HistoryStore.prototype.add = function(line, options, cb) {
+HistoryFile.prototype.add = function(line, options, cb) {
   if(typeof options === 'function') {
     cb = options;
     options = null;
@@ -296,7 +296,7 @@ HistoryStore.prototype.add = function(line, options, cb) {
  *  @param cb A callback function invoked when the history
  *  has been synced to disc or on error.
  */
-HistoryStore.prototype.pop = function(options, cb) {
+HistoryFile.prototype.pop = function(options, cb) {
   if(typeof options === 'function') {
     cb = options;
     options = null;
@@ -325,7 +325,7 @@ HistoryStore.prototype.pop = function(options, cb) {
   })
 }
 
-HistoryStore.prototype._success = function() {
+HistoryFile.prototype._success = function() {
   this._checkpoint = this._history.length;
 }
 
@@ -335,7 +335,7 @@ HistoryStore.prototype._success = function() {
  *  @param cb A callback function invoked when the history
  *  has been synced to disc or on error.
  */
-HistoryStore.prototype.clear = function(cb) {
+HistoryFile.prototype.clear = function(cb) {
   var scope = this;
   fs.writeFile(this.file, '', function(err) {
     if(err) return cb(err, scope);
@@ -351,7 +351,7 @@ HistoryStore.prototype.clear = function(cb) {
  *  @param cb A callback function invoked when the
  *  stream has finished or on error.
  */
-HistoryStore.prototype.close = function(cb) {
+HistoryFile.prototype.close = function(cb) {
   if(this._stream) {
     this._stream.once('finish', cb);
     this._stream.end();
@@ -365,7 +365,7 @@ HistoryStore.prototype.close = function(cb) {
  *  @param cb A callback function invoked when the
  *  write completes or on error.
  */
-HistoryStore.prototype._sync = function(cb) {
+HistoryFile.prototype._sync = function(cb) {
   this._checkpoint = 0;
   this._write(this.getLines(), cb);
 }
@@ -375,7 +375,7 @@ HistoryStore.prototype._sync = function(cb) {
  *
  *  Write to disc and update the internal stats upon successful write.
  */
-HistoryStore.prototype._write = function(flush, cb) {
+HistoryFile.prototype._write = function(flush, cb) {
   var scope = this
     , contents = typeof flush === 'string' || flush instanceof Buffer
       ? flush : null;
@@ -418,7 +418,7 @@ HistoryStore.prototype._write = function(flush, cb) {
  *  @return Filtered array of lines or the original array
  *  if no ignore patterns are configured.
  */
-HistoryStore.prototype._filter = function(lines) {
+HistoryFile.prototype._filter = function(lines) {
   if(!this.options.ignores) return lines;
   var scope = this;
   return lines.filter(function(line) {
@@ -426,7 +426,7 @@ HistoryStore.prototype._filter = function(lines) {
   })
 }
 
-HistoryStore.prototype._matches = function(line) {
+HistoryFile.prototype._matches = function(line) {
   if(!this.options.ignores) return line;
   var ignores = this.options.ignores || [];
   if(ignores instanceof RegExp) {
@@ -462,14 +462,13 @@ History.prototype.load = function(options, cb) {
       ? options.create : this.options.create;
   var opts = merge(this.options, {});
   opts = merge(options, opts);
-  //console.dir(opts);
   assert(file, 'cannot load history with no file');
   file = path.normalize(file);
   if(stores[file] && !opts.force) {
     return cb(null, stores[file]);
   }
 
-  var store = new HistoryStore(this, opts);
+  var store = new HistoryFile(this, opts);
   stores[file] = store;
   store.read(function(err) {
     cb(err, store, scope);
@@ -479,7 +478,7 @@ History.prototype.load = function(options, cb) {
 /**
  *  Get a history store by file path or all stores.
  */
-History.prototype.getStore = function(file) {
+History.prototype.store = function(file) {
   if(file) return stores[file];
   return stores;
 }
