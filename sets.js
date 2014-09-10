@@ -1,3 +1,6 @@
+var utils = require('cli-util')
+  , merge = utils.merge;
+
 var username = {
   key: 'name',
   message: '<username>',
@@ -26,9 +29,16 @@ var confirm = {
   reject: /^no?$/     // accepts no | n
 }
 
+// a password prompt that confirms passwords match (equal)
+var newpass = merge(password, {});
+newpass.type = 'password';
+newpass.equal = true;
+newpass.confirmation = 'confirm';
+
 module.exports = {
   username: [username],
   password: [password],
   userpass: [username, password],
-  confirm: [confirm]
+  confirm: [confirm],
+  newpass: [newpass]
 }

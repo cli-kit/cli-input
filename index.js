@@ -11,7 +11,8 @@ var paused = new Error('paused');
 paused.paused = true;
 
 var types = {
-  binary: 'binary'
+  binary: 'binary',
+  password: 'password'
 }
 
 var schema;
@@ -223,6 +224,12 @@ Prompt.prototype.exec = function(options, cb) {
       return scope.exec(options, cb);
     }
 
+
+    //if(options.type === types.password
+      //&& options.equal && options.pass1 && !options.pass2) {
+      //return scope.exec(options, cb);
+    //}
+
     if(options.native && val) {
       val =
         native.to(val, options.native.delimiter, options.native.json);
@@ -260,6 +267,25 @@ Prompt.prototype.exec = function(options, cb) {
         val = {result: val, accept: null}
         scope.emit('unacceptable', val, options, scope);
         if(options.repeat) return scope.exec(options, cb);
+      }
+    }
+
+    if(options.type === types.password && options.equal) {
+      if(!options.pass1) {
+        options.pass1 = val;
+        options.default = options.confirmation;
+        // gather password confirmation
+        return scope.exec(options, cb);
+      }else{
+        options.pass2 = val;
+        if(options.pass1 !== options.pass2) {
+          scope.emit('mismatch',
+            options.pass1, options.pass2, options, scope);
+          delete options.pass1;
+          delete options.pass2;
+          delete options.default;
+          return scope.exec(options, cb);
+        }
       }
     }
 
