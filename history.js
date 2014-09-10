@@ -6,7 +6,8 @@ var EOL = require('os').EOL
   , util = require('util')
   , events = require('events')
   , utils = require('cli-util')
-  , uniq = utils.uniq;
+  , uniq = utils.uniq
+  , merge = utils.merge;
 
 var stores = {};
 
@@ -23,9 +24,9 @@ var HistoryStore = function(parent, options, lines) {
   this.options = options;
   this._parent = parent;
   this._history = lines;
-  this._checkpoint = this._history.length;
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
+  this._success();
 }
 
 /**
@@ -132,7 +133,7 @@ HistoryStore.prototype.import = function(content, cb) {
       scope.stats(function(err) {
         if(err) return cb(err);
         scope._history = scope.readLines(content);
-        scope._checkpoint = scope._history.length;
+        scope._success();
         cb(null, content, scope);
       })
     })
@@ -211,8 +212,11 @@ HistoryStore.prototype.add = function(line, options, cb) {
     line = line.filter(function(item) {
       return '' + item;
     })
-    this._history.concat(line);
+    this._history.concat(this._filter(line));
   }else if(typeof line === 'string') {
+    if(!this._matches(line)) {
+      return cb(null, scope);
+    }
     line = '' + line;
     line = line.replace(/\r?\n$/, '');
     this._history.push(line);
@@ -261,10 +265,15 @@ HistoryStore.prototype.pop = function(options, cb) {
     if(err) {
       // TODO: we need to re-initialize from the state on disc
     }else{
-      scope._checkpoint = scope._history.length;
+      //scope._checkpoint = scope._history.length;
+      scope._success();
     }
     cb(err, item, scope);
   })
+}
+
+HistoryStore.prototype._success = function() {
+  this._checkpoint = this._history.length;
 }
 
 /**
@@ -278,7 +287,7 @@ HistoryStore.prototype.clear = function(cb) {
   fs.writeFile(this.file, '', function(err) {
     if(err) return cb(err, scope);
     scope._history = [];
-    scope._checkpoint = 0;
+    scope._success();
     cb(null, scope);
   })
 }
@@ -328,7 +337,8 @@ HistoryStore.prototype._write = function(flush, cb) {
       if(err) return cb(err, scope);
       scope.stats(function(err) {
         if(err) return cb(err, scope);
-        scope._checkpoint = scope._history.length;
+        //scope._checkpoint = scope._history.length;
+        scope._success();
         cb(null, scope);
       });
     });
@@ -357,20 +367,26 @@ HistoryStore.prototype._write = function(flush, cb) {
  */
 HistoryStore.prototype._filter = function(lines) {
   if(!this.options.ignores) return lines;
+  var scope = this;
+  return lines.filter(function(line) {
+    return scope._matches(line);
+  })
+}
+
+HistoryStore.prototype._matches = function(line) {
+  if(!this.options.ignores) return line;
   var ignores = this.options.ignores || [];
   if(ignores instanceof RegExp) {
     ignores = [ignores];
   }
-  return lines.filter(function(line) {
-    var i, re;
-    for(i = 0;i < ignores.length;i++) {
-      re = ignores[i];
-      if((re instanceof RegExp) && re.test(line)) {
-        return false;
-      }
+  var i, re;
+  for(i = 0;i < ignores.length;i++) {
+    re = ignores[i];
+    if((re instanceof RegExp) && re.test(line)) {
+      return false;
     }
-    return line;
-  })
+  }
+  return line;
 }
 
 var History = function(options) {
@@ -391,15 +407,17 @@ History.prototype.load = function(options, cb) {
   var file = options.file || this.options.file
     , create = options.create !== undefined
       ? options.create : this.options.create;
+  var opts = merge(this.options, {});
+  opts = merge(options, opts);
+  //console.dir(opts);
   assert(file, 'cannot load history with no file');
   file = path.normalize(file);
-  if(stores[file] && !options.force) {
+  if(stores[file] && !opts.force) {
     return cb(null, stores[file]);
   }
 
-  var store = new HistoryStore(scope, scope.options);
+  var store = new HistoryStore(this, opts);
   stores[file] = store;
-
   store.read(function(err) {
     cb(err, store, scope);
   })

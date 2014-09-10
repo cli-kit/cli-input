@@ -163,6 +163,28 @@ describe('cli-input:', function() {
     })
   });
 
+  it('should respect ignore patterns', function(done) {
+    var opts = {
+      file: mock.file,
+      ignores: /^a.*/,
+      force: true
+    }
+    var lines = ['a', 'b', 'c'];
+    var expected = lines.slice(1);
+    history(opts, function(err, store, history) {
+      store.import(lines,  function(err) {
+        expect(store.history()).to.eql(expected);
+        store.add('abracadabra', function(err) {
+          expect(store.history()).to.eql(expected);
+          var contents = fsutil.text(mock.file);
+          expect(contents).to.eql(expected.join(EOL) + EOL);
+          done(err);
+        })
+      });
+    });
+  });
+
+
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);
