@@ -9,7 +9,6 @@ var stores = {};
 
 var HistoryStore = function(parent, options, lines) {
   options = options || {};
-  console.dir(lines);
   lines = lines.split('\n');
   lines = lines.filter(function(line) {
     line = line.replace(/\r$/, '');
@@ -19,13 +18,13 @@ var HistoryStore = function(parent, options, lines) {
   options.flush = options.flush !== undefined ? options.flush : true;
   options.duplicates = options.duplicates !== undefined
     ? options.duplicates : false;
+  options.limit = options.limit === 'number' ? options.limit : 2048;
   this.file = options.file;
   this.options = options;
   this._parent = parent;
   this._history = lines;
-  //console.dir(lines);
-  this._stream = fs.createWriteStream(this.file, {flags: 'a'});
   this._checkpoint = this._history.length;
+  this._stream = fs.createWriteStream(this.file, {flags: 'a'});
 }
 
 HistoryStore.prototype.isFlushed = function() {
@@ -35,15 +34,18 @@ HistoryStore.prototype.isFlushed = function() {
 HistoryStore.prototype.write = function(flush, cb) {
   var scope = this;
   if(!flush || this._checkpoint === this._history.length) return cb(null, scope);
-  console.log('write to disc %s %s', this._checkpoint, this._history.length);
+  //console.log('write to disc %s %s', this._checkpoint, this._history.length);
   var lines = this._history.slice(this._checkpoint, this._history.length);
   // add trailing newline
   if(lines[lines.length - 1]) {
     lines.push('');
   }
   var append = lines.join(EOL);
-  console.log('write to disc %j', append);
-  //this._stream =
+  //console.log('write to disc %j', append);
+  this._stream.write(append, function(err) {
+    if(!err) scope._checkpoint = scope._history.length;
+    return cb(err, scope);
+  });
 
 }
 
@@ -57,10 +59,9 @@ HistoryStore.prototype.add = function(line, options, cb) {
   var scope = this
     , flush = options.flush || this.options.flush;
   if(!this.options.duplicates && ~this._history.indexOf(line)) {
-    //console.log('ignoring duplicate');
     return cb(null, scope);
   }
-  console.log('flush %s', flush);
+  //console.log('flush %s', flush);
   assert(typeof line === 'string', 'history entry must be a string')
   line = '' + line;
   line = line.replace(/\r?\n$/, '');
@@ -118,9 +119,10 @@ History.prototype.load = function(options, cb) {
     if(err) return cb(err, null, scope);
     var store = new HistoryStore(scope, scope.options, '' + contents);
     stores[file] = store;
-    //console.log('isFlushed: %s', store.isFlushed());
-    store.add('line item');
-    store.add('line item');
+    store.add('line item, random: ' + Math.random(), function(err, store) {
+      //console.log('added item: %s', store);
+      console.log('isFlushed: %s', store.isFlushed());
+    });
     cb(null, store, scope);
   })
 }
