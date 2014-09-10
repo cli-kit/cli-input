@@ -28,10 +28,28 @@ var HistoryStore = function(parent, options, lines) {
   this._stats = null;
 }
 
+/**
+ *  Get the underlying history array.
+ */
 HistoryStore.prototype.history = function() {
   return this._history;
 }
 
+
+/**
+ *  Get the underlying file stats.
+ */
+HistoryStore.prototype.stats = function() {
+  return this._stats;
+}
+
+/**
+ *  Read lines into an array.
+ *
+ *  @param lines A string or buffer.
+ *
+ *  @return An array of lines.
+ */
 HistoryStore.prototype.readLines = function(lines) {
   if(!lines) return [];
   if(lines instanceof Buffer) lines = '' + lines;
@@ -47,6 +65,22 @@ HistoryStore.prototype.readLines = function(lines) {
   return lines;
 }
 
+/**
+ *  Import into this history store.
+ *
+ *  If content is a callback function all data is read from disc,
+ *  otherwise content should be a string or array to import.
+ *
+ *  When content is specified the and this instance is flushing
+ *  the file is written to disc.
+ *
+ *  If content is specified but no callback then the internal representation
+ *  is updated but content is not flushed to disc.
+ *
+ *  @param content String or array to import.
+ *  @param cb A callback function invoked when the history
+ *  has been synced to disc or on error.
+ */
 HistoryStore.prototype.import = function(content, cb) {
   var scope = this;
   // no content so read the file and import the data
@@ -66,58 +100,32 @@ HistoryStore.prototype.import = function(content, cb) {
 
   // update internal representation
   this._history = content;
+  this._checkpoint = 0;
   // write out if we have callback
   if(typeof cb === 'function') {
-    this._checkpoint = 0;
     this._write(this.getLines(), cb);
-  // assuming we just read in from the file
-  }else{
-    this._checkpoint = this._history.length;
   }
 }
 
+/**
+ *  Determine if the stored checkpoint is synchronized
+ *  with the history array.
+ *
+ *  @return A boolean indicating if the internal checkpoint is at
+ *  the end of the history array.
+ */
 HistoryStore.prototype.isFlushed = function() {
   return this._checkpoint === this._history.length;
 }
 
-HistoryStore.prototype._write = function(flush, cb) {
-  var scope = this
-    , contents = typeof flush === 'string' || flush instanceof Buffer
-      ? flush : null;
-  if(!flush || this._checkpoint === this._history.length) return cb(null, scope);
-  //console.log('write to disc %s %s', this._checkpoint, this._history.length);
-  var append = !contents;
-  if(append) {
-    contents = this.getLines();
-  }
-
-  function write(stream, cb) {
-    //console.log('writing contents...%s', contents);
-    stream.write(contents, function onwrite(err) {
-      if(err) return cb(err, scope);
-      fs.stat(scope.file, function(err, stats) {
-        if(err) return cb(err, scope);
-        stats.file = scope.file;
-        scope._stats = stats;
-        if(!err) scope._checkpoint = scope._history.length;
-        //console.log('write complete %s', cb);
-        return cb(err, scope);
-      });
-    });
-  }
-  //console.log('write to disc %j', append);
-  if(!append) {
-    var st = fs.createWriteStream(this.file, {flags: 'w+'});
-    write.call(scope, st, function(err) {
-      st.end();
-      if(err) return cb(err, scope);
-      cb(null, scope);
-    });
-  }else{
-    write.call(scope, this._stream, cb);
-  }
-}
-
+/**
+ *  Get a string of lines from the underlying arrat of lines.
+ *
+ *  Includes a trailing newline.
+ *
+ *  @param checkpoint The start index into the history array.
+ *  @param length The end index into the history array.
+ */
 HistoryStore.prototype.getLines = function(checkpoint, length) {
   var lines = this._history.slice(
     checkpoint || this._checkpoint, length || this._history.length);
@@ -128,17 +136,26 @@ HistoryStore.prototype.getLines = function(checkpoint, length) {
   return lines.join(EOL);
 }
 
-HistoryStore.prototype.read = function(options, cb) {
-  if(typeof options === 'function') {
-    cb = options;
-    options = null;
-  }
-  options = options || {};
+/**
+ *  Read the history file from disc and load it into
+ *  this instance.
+ *
+ *  @param cb A callback function invoked when the history
+ *  has been read from disc or on error.
+ */
+HistoryStore.prototype.read = function(cb) {
   cb = typeof cb === 'function' ? cb : noop;
   return this.import(cb);
 }
 
-
+/**
+ *  Add a line to this history store.
+ *
+ *  @param line The line to append.
+ *  @param options The append options.
+ *  @param cb A callback function invoked when the history
+ *  has been synced to disc or on error.
+ */
 HistoryStore.prototype.add = function(line, options, cb) {
   if(typeof options === 'function') {
     cb = options;
@@ -159,6 +176,18 @@ HistoryStore.prototype.add = function(line, options, cb) {
   this._write(flush, cb);
 }
 
+/**
+ *  Remove the last history item.
+ *
+ *  If this store is not set to flush to disc then this method
+ *  acts like peek.
+ *
+ *  Truncates the history file when flushing to disc.
+ *
+ *  @param options The options.
+ *  @param cb A callback function invoked when the history
+ *  has been synced to disc or on error.
+ */
 HistoryStore.prototype.pop = function(options, cb) {
   if(typeof options === 'function') {
     cb = options;
@@ -187,6 +216,12 @@ HistoryStore.prototype.pop = function(options, cb) {
   })
 }
 
+/**
+ *  Remove all history items.
+ *
+ *  @param cb A callback function invoked when the history
+ *  has been synced to disc or on error.
+ */
 HistoryStore.prototype.clear = function(cb) {
   var scope = this;
   fs.writeFile(this.file, '', function(err) {
@@ -197,6 +232,12 @@ HistoryStore.prototype.clear = function(cb) {
   })
 }
 
+/**
+ *  Closes the underlying stream.
+ *
+ *  @param cb A callback function invoked when the
+ *  stream has finished or on error.
+ */
 HistoryStore.prototype.close = function(cb) {
   if(this._stream) {
     this._stream.once('finish', cb);
@@ -204,6 +245,46 @@ HistoryStore.prototype.close = function(cb) {
     this._stream = null;
   }
 }
+
+/**
+ *  @private
+ *
+ *  Write to disc and update the internal stats upon successful write.
+ */
+HistoryStore.prototype._write = function(flush, cb) {
+  var scope = this
+    , contents = typeof flush === 'string' || flush instanceof Buffer
+      ? flush : null;
+  if(!flush || this._checkpoint === this._history.length) return cb(null, scope);
+  //console.log('write to disc %s %s', this._checkpoint, this._history.length);
+  var append = !contents;
+  if(append) {
+    contents = this.getLines();
+  }
+  function write(stream, cb) {
+    stream.write(contents, function onwrite(err) {
+      if(err) return cb(err, scope);
+      fs.stat(scope.file, function(err, stats) {
+        if(err) return cb(err, scope);
+        stats.file = scope.file;
+        scope._stats = stats;
+        scope._checkpoint = scope._history.length;
+        return cb(err, scope);
+      });
+    });
+  }
+  if(!append) {
+    var st = fs.createWriteStream(this.file, {flags: 'w+'});
+    write.call(scope, st, function(err) {
+      st.end();
+      if(err) return cb(err, scope);
+      cb(null, scope);
+    });
+  }else{
+    write.call(scope, this._stream, cb);
+  }
+}
+
 
 var History = function(options) {
   options = options || {};
