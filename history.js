@@ -9,13 +9,15 @@ var EOL = require('os').EOL
   , uniq = utils.uniq
   , merge = utils.merge;
 
-var stores = {};
+var stores = {}
+  , property = 'history';
 
 function noop(){};
 
 var HistoryFile = function(parent, options) {
   var scope = this;
   options = options || {};
+
   options.flush = options.flush !== undefined ? options.flush : true;
   options.duplicates = options.duplicates !== undefined
     ? options.duplicates : false;
@@ -23,10 +25,11 @@ var HistoryFile = function(parent, options) {
 
   // flush on process close
   if(options.close) {
-    // don't flush on modification
+    // overrides flush on modification
     options.flush = false;
     process.on('exit', function onexit() {
-      fs.writeFileSync(scope.file, scope.getLines());
+      var res = fs.writeFileSync(scope.file, scope.getLines());
+      scope.emit('exit', res, scope);
     })
   }
 
@@ -36,11 +39,38 @@ var HistoryFile = function(parent, options) {
   this._history = [];
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
-  this.reset();
+  this._mirror = null;
   this._success();
+  this.reset();
 }
 
-// POSITIONAL FUNCTIONS
+util.inherits(HistoryFile, events.EventEmitter);
+
+// mirroring
+
+/**
+ *  Configure this instance to mirror the array on another object.
+ *
+ *  The target must have an existing named property that is an array.
+ *
+ *  @param target The target object.
+ *  @param field A field name, default is history.
+ */
+HistoryFile.prototype.mirror = function(target, field) {
+  field = field || property;
+  if(target && target.hasOwnProperty(field) && Array.isArray(target[field])) {
+    this._mirror = {target: target, field: field};
+  }
+}
+
+/**
+ *  Determines if we are mirroring.
+ */
+HistoryFile.prototype.mirrors = function() {
+  return this._mirror && this._mirror.target && this._mirror.field;
+}
+
+// positional functions
 HistoryFile.prototype.end = function() {
   this._position = this._history.length ? this._history.length - 1 : 0;
   return !this._history.length ? false : this._history[this._position];
@@ -149,7 +179,7 @@ HistoryFile.prototype.readLines = function(lines) {
 }
 
 /**
- *  Get a string of lines from the underlying arrat of lines.
+ *  Get a string of lines from the underlying array of lines.
  *
  *  Includes a trailing newline.
  *
@@ -206,7 +236,7 @@ HistoryFile.prototype.import = function(content, cb) {
     'invalid history content type, must be array or string');
 
   // update internal representation
-  this._history = content;
+  this._assign(content, {overwrite: true});
   this._checkpoint = 0;
   // write out if we have callback
   if(typeof cb === 'function') {
@@ -294,12 +324,16 @@ HistoryFile.prototype.add = function(line, options, cb) {
   }
 }
 
-HistoryFile.prototype._assign = function(data) {
+HistoryFile.prototype._assign = function(data, opts) {
   if(!Array.isArray(data)) {
     data = [data];
   }
-  this._history = this._history.concat(data);
-
+  opts = opts || {};
+  if(opts.overwrite) {
+    this._history = [].concat(data);
+  }else{
+    this._history = this._history.concat(data);
+  }
   this.end();
 }
 
@@ -357,6 +391,7 @@ HistoryFile.prototype._success = function() {
 HistoryFile.prototype.clear = function(cb) {
   var scope = this;
   fs.writeFile(this.file, '', function(err) {
+    /* istanbul ignore if */
     if(err) return cb(err, scope);
     scope._history = [];
     scope._success();
@@ -371,6 +406,7 @@ HistoryFile.prototype.clear = function(cb) {
  *  stream has finished or on error.
  */
 HistoryFile.prototype.close = function(cb) {
+  /* istanbul ignore else */
   if(this._stream) {
     this._stream.once('finish', cb);
     this._stream.end();
@@ -503,13 +539,10 @@ History.prototype.store = function(file) {
 }
 
 function history(options, cb) {
-  if(typeof options === 'function') {
-    cb = options;
-    options = null;
-  }
-  options = options || {};
   var h = new History(options);
   if(cb) {
+    assert(options && options.file,
+      'must specify a file to load into the history');
     h.load(options, cb);
   }
   return h;

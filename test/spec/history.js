@@ -11,7 +11,7 @@ describe('cli-input:', function() {
   var stash;
 
   it('should create history instance', function(done) {
-    var h = history({});
+    var h = history({create:true});
     expect(h).to.be.instanceof(History);
     done();
   });
@@ -21,6 +21,8 @@ describe('cli-input:', function() {
       stash = store;
       expect(err).to.eql(null);
       expect(hs).to.eql(history).to.be.instanceof(History);
+      expect(hs.store(mock.file)).to.eql(store);
+      expect(hs.store()).to.be.an('object');
       expect(store).to.be.instanceof(HistoryFile);
       expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
@@ -50,7 +52,14 @@ describe('cli-input:', function() {
           expect(stash.move(16)).to.eql(false);
           expect(stash.move(-1)).to.eql(false);
           expect(stash.reset()).to.eql(3);
-          stash.clear(done);
+          // fake a peek
+          stash.options.flush = false;
+          stash.pop(function(err, item, store) {
+            expect(item).to.eql('d');
+            //console.dir(item);
+            stash.options.flush = true;
+            stash.clear(done);
+          });
         });
       });
     });
@@ -221,4 +230,18 @@ describe('cli-input:', function() {
       done();
     })
   });
+
+  //it('should fire exit event', function(done) {
+    //var opts = {
+      //exit: true,
+      //file: mock.file
+    //}
+    //var lines = ['a', 'b', 'c'];
+    ////var expected = lines.slice(1);
+    //history(opts, function(err, store, history) {
+      //store.once('exit', function() {
+        //done();
+      //});
+    //});
+  //});
 });
