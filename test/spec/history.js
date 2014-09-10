@@ -6,24 +6,6 @@ var input= require('../..')
   , history = input.history
   , History = input.History;
 
-//var h = history({file: process.env.HOME + '/.rlx/.history'},
-  //function(err, store, hs) {
-    //if(err) return console.error(err);
-    ////console.log('loaded history');
-    ////console.dir(hs.getStore());
-
-    //store.add('line item, random: ' + Math.random(), function(err, store) {
-      ////console.log('added item: %s', store);
-      //console.log('isFlushed: %s', store.isFlushed());
-      //console.dir(hs.getStore());
-      ////store.clear(function() {
-        ////console.log('after clear isFlushed: %s', store.isFlushed());
-        ////console.dir(hs.getStore());
-      ////})
-    //});
-  //}
-//);
-
 describe('cli-input:', function() {
   var stash;
 
@@ -40,6 +22,7 @@ describe('cli-input:', function() {
       expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
       expect(contents).to.eql('');
+      expect(stash.history()).to.eql([]);
       done();
     });
   });
@@ -102,6 +85,26 @@ describe('cli-input:', function() {
 
   it('should read history file', function(done) {
     stash.read(function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(mock.lines[0] + EOL);
+      done();
+    })
+  });
+
+  it('should import history file string', function(done) {
+    stash.import(mock.lines[1], function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(mock.lines[1] + EOL);
+      done();
+    })
+  });
+
+  it('should import history array', function(done) {
+    stash.import([mock.lines[0]], function(err) {
       expect(err).to.eql(null);
       expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);

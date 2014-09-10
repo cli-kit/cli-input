@@ -28,6 +28,10 @@ var HistoryStore = function(parent, options, lines) {
   this._stats = null;
 }
 
+HistoryStore.prototype.history = function() {
+  return this._history;
+}
+
 HistoryStore.prototype.readLines = function(lines) {
   if(!lines) return [];
   if(lines instanceof Buffer) lines = '' + lines;
@@ -64,6 +68,7 @@ HistoryStore.prototype.import = function(content, cb) {
   this._history = content;
   // write out if we have callback
   if(typeof cb === 'function') {
+    this._checkpoint = 0;
     this._write(this.getLines(), cb);
   // assuming we just read in from the file
   }else{
@@ -86,9 +91,9 @@ HistoryStore.prototype._write = function(flush, cb) {
     contents = this.getLines();
   }
 
-  function write(cb) {
-    //console.log('writing contents...');
-    this._stream.write(contents, function onwrite(err) {
+  function write(stream, cb) {
+    //console.log('writing contents...%s', contents);
+    stream.write(contents, function onwrite(err) {
       if(err) return cb(err, scope);
       fs.stat(scope.file, function(err, stats) {
         if(err) return cb(err, scope);
@@ -102,14 +107,14 @@ HistoryStore.prototype._write = function(flush, cb) {
   }
   //console.log('write to disc %j', append);
   if(!append) {
-    this._stream.close();
-    this._stream = fs.createWriteStream(this.file, {flags: 'w+'});
-    write.call(scope, function(err) {
+    var st = fs.createWriteStream(this.file, {flags: 'w+'});
+    write.call(scope, st, function(err) {
+      st.end();
       if(err) return cb(err, scope);
       cb(null, scope);
     });
   }else{
-    write.call(scope, cb);
+    write.call(scope, this._stream, cb);
   }
 }
 
