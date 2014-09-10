@@ -39,7 +39,38 @@ var HistoryStore = function(parent, options, lines) {
   this._history = lines;
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
+  this._position = 0;
   this._success();
+}
+
+HistoryStore.prototype.position = function(index) {
+  return this._position;
+}
+
+HistoryStore.prototype.go = function(index) {
+  if(index > -1 && index < this._history.length) {
+    this._position = index;
+    return this._history[index];
+  }
+  return false;
+}
+
+HistoryStore.prototype.next = function() {
+  var pos = this._position + 1;
+  if(pos < this._history.length) {
+    this._position = pos;
+    return this._history[pos];
+  }
+  return false;
+}
+
+HistoryStore.prototype.previous = function() {
+  var pos = this._position - 1;
+  if(pos > -1 && this._history.length) {
+    this._position = pos;
+    return this._history[pos];
+  }
+  return false;
 }
 
 /**
