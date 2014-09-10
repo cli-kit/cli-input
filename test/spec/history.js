@@ -85,6 +85,7 @@ describe('cli-input:', function() {
     })
   });
 
+
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);
@@ -93,5 +94,10 @@ describe('cli-input:', function() {
       expect(contents).to.eql('');
       done();
     })
+  });
+
+  it('should close history file stream', function(done) {
+    stash.close(done);
+    //done();
   });
 });

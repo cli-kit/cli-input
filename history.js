@@ -141,6 +141,14 @@ HistoryStore.prototype.clear = function(cb) {
   })
 }
 
+HistoryStore.prototype.close = function(cb) {
+  if(this._stream) {
+    this._stream.once('finish', cb);
+    this._stream.end();
+    this._stream = null;
+  }
+}
+
 var History = function(options) {
   options = options || {};
   options.create = options.create !== undefined ? options.create : true;
