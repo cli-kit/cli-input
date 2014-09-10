@@ -184,7 +184,6 @@ describe('cli-input:', function() {
     });
   });
 
-
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);

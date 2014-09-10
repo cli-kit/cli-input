@@ -14,12 +14,25 @@ var stores = {};
 function noop(){};
 
 var HistoryStore = function(parent, options, lines) {
+  var scope = this;
+
   options = options || {};
   lines = this.readLines(lines);
   options.flush = options.flush !== undefined ? options.flush : true;
   options.duplicates = options.duplicates !== undefined
     ? options.duplicates : false;
   options.limit = options.limit === 'number' ? options.limit : 2048;
+
+  // flush on process close
+  if(options.close) {
+    // don't flush on modification
+    options.flush = false;
+    process.on('exit', function() {
+      console.log('flush on exit');
+      fs.writeFileSync(scope.file, scope.getLines());
+    })
+  }
+
   this.file = options.file;
   this.options = options;
   this._parent = parent;
