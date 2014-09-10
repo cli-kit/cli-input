@@ -79,9 +79,15 @@ var Prompt = function(options, rl) {
   })
 
   this.options = options;
+
+  this._use = {};
 }
 
 util.inherits(Prompt, events.EventEmitter);
+
+Prompt.prototype.use = function(props) {
+  this._use = merge(props, this._use);
+}
 
 Prompt.prototype.transform = function(k, v, options) {
   var fmts = merge(this.formats, {});
@@ -106,7 +112,8 @@ Prompt.prototype.replace = function(format, source, options) {
     return s;
   }
 
-  var highlights = this.rl.output && this.rl.output.isTTY;
+  var highlights = this.rl.output
+    && this.rl.output.isTTY && this._use.colors !== false;
   var prefixed = this.options.colors && this.options.colors.prefix;
   var name = source.name
     , delimiter = source.delimiter;
@@ -321,6 +328,7 @@ Prompt.prototype.exec = function(options, cb) {
 
 Prompt.prototype.pause = function() {
   this._paused = true;
+  this.emit('pause', this);
 }
 
 Prompt.prototype.resume = function(options, cb) {
@@ -330,6 +338,7 @@ Prompt.prototype.resume = function(options, cb) {
   if(this.options.infinite) {
     this.exec(options || this.getDefaultPrompt(), cb);
   }
+  this.emit('resume', this);
 }
 
 Prompt.prototype.prompt = function(options, cb) {

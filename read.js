@@ -78,7 +78,10 @@ function read (opts, cb) {
   }else if(opts.value) {
     rl.line = '' + opts.value;
     rl.cursor = opts.value.length;
+    //console.error(rl.cursor);
     rl._refreshLine();
+    // value is always a one shot deal
+    opts.value = null;
   }
 
   var timer;
