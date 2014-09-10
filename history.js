@@ -196,11 +196,20 @@ HistoryStore.prototype.add = function(line, options, cb) {
   if(!this.options.duplicates && ~this._history.indexOf(line)) {
     return cb(null, scope);
   }
-  //console.log('flush %s', flush);
-  assert(typeof line === 'string', 'history entry must be a string')
-  line = '' + line;
-  line = line.replace(/\r?\n$/, '');
-  this._history.push(line);
+  assert(typeof line === 'string' || Array.isArray(line),
+    'history entry must be array or string');
+
+  if(Array.isArray(line)) {
+    line = line.filter(function(item) {
+      return '' + item;
+    })
+    this._history.concat(line);
+  }else if(typeof line === 'string') {
+    line = '' + line;
+    line = line.replace(/\r?\n$/, '');
+    this._history.push(line);
+  }
+
   var over = this._history.length > this.options.limit;
   if(!over) {
     this._write(flush, cb);
