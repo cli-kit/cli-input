@@ -34,6 +34,13 @@ var HistoryFile = function(parent, options) {
       scope.emit('exit', res, scope);
     })
   }
+
+  options.interpreter = options.interpreter ||
+    {
+      replace: true,    // replace expanded items
+      remove: true      // remove the history command itself
+    }
+
   var mirrors = options.mirrors || {};
 
   this.file = options.file;
@@ -59,16 +66,34 @@ HistoryFile.prototype.size = HistoryFile.prototype.length;
 
 HistoryFile.prototype.interpret = function(cmd, options) {
   options = options || {};
+  var val = false;
+  var defs = merge(this.options.interpreter, {});
+  options = merge(options, defs);
   if(!cmd || typeof cmd !== 'string') return false;
+
   var re = {
     is: /^!/,
     last: /^!!$/,
   }
   if(!re.is.test(cmd)) return false;
-  if(re.last.test(cmd)) {
-    return this.end();
+
+  if(options.remove) {
+    this._history.shift();
   }
-  return false;
+
+  if(re.last.test(cmd)) {
+    val = this.start();
+    ind = 0;
+  }
+
+  //console.dir(ind);
+
+  // update item in list with the expanded value
+  if(options.replace && ind > -1 && ind < this.size()) {
+    this._history[ind] = val;
+  }
+
+  return val;
 }
 
 // mirroring
