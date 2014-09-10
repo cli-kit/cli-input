@@ -32,6 +32,7 @@ var HistoryFile = function(parent, options) {
       scope.emit('exit', res, scope);
     })
   }
+  var mirrors = options.mirrors || {};
 
   this.file = options.file;
   this.options = options;
@@ -39,7 +40,7 @@ var HistoryFile = function(parent, options) {
   this._history = [];
   this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
   this._stats = null;
-  this._mirror = null;
+  this._mirror = this.mirror(mirrors.target, mirrors.field);
   this._success();
   this.reset();
 }
@@ -57,10 +58,16 @@ util.inherits(HistoryFile, events.EventEmitter);
  *  @param field A field name, default is history.
  */
 HistoryFile.prototype.mirror = function(target, field) {
+  if(target === null) {
+    this._mirror = null;
+    return null;
+  }
   field = field || property;
   if(target && target.hasOwnProperty(field) && Array.isArray(target[field])) {
     this._mirror = {target: target, field: field};
+    return this._mirror;
   }
+  return null;
 }
 
 /**
