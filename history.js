@@ -518,5 +518,6 @@ function history(options, cb) {
 }
 
 history.History = History;
+history.HistoryFile = HistoryFile;
 
 module.exports = history;

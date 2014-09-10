@@ -4,7 +4,8 @@ var fsutil = require('../util/fsutil');
 var EOL = require('os').EOL;
 var input= require('../..')
   , history = input.history
-  , History = input.History;
+  , History = input.History
+  , HistoryFile = history.HistoryFile;
 
 describe('cli-input:', function() {
   var stash;
@@ -16,9 +17,11 @@ describe('cli-input:', function() {
   });
 
   it('should create history file', function(done) {
-    history({file: mock.file}, function(err, store, history) {
+    var hs = history({file: mock.file}, function(err, store, history) {
       stash = store;
       expect(err).to.eql(null);
+      expect(hs).to.eql(history).to.be.instanceof(History);
+      expect(store).to.be.instanceof(HistoryFile);
       expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
       expect(stash.file).to.be.a('string')
@@ -46,6 +49,7 @@ describe('cli-input:', function() {
           expect(stash.move(1)).to.eql('b');
           expect(stash.move(16)).to.eql(false);
           expect(stash.move(-1)).to.eql(false);
+          expect(stash.reset()).to.eql(3);
           stash.clear(done);
         });
       });
