@@ -21,6 +21,7 @@ describe('cli-input:', function() {
       expect(err).to.eql(null);
       expect(stash.isFlushed()).to.eql(true);
       var contents = fsutil.text(mock.file);
+      console.dir(stash.stats());
       expect(contents).to.eql('');
       expect(stash.history()).to.eql([]);
       done();

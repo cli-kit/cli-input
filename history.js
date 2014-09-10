@@ -35,12 +35,28 @@ HistoryStore.prototype.history = function() {
   return this._history;
 }
 
-
 /**
  *  Get the underlying file stats.
  */
-HistoryStore.prototype.stats = function() {
+HistoryStore.prototype.stats = function(cb) {
+  var scope = this;
+  if(typeof cb === 'function') {
+    fs.stat(this.file, function(err, stats) {
+      if(err) return cb(err, scope);
+      stats.file = scope.file;
+      scope._stats = stats;
+      scope._checkpoint = scope._history.length;
+      return cb(err, scope);
+    });
+  }
   return this._stats;
+}
+
+/**
+ *  Get the parent History instance.
+ */
+HistoryStore.prototype.parent = function() {
+  return this._parent;
 }
 
 /**
@@ -88,9 +104,12 @@ HistoryStore.prototype.import = function(content, cb) {
     cb = content;
     return fs.readFile(this.file, function(err, content) {
       if(err) return cb(err, null, scope);
-      scope._history = scope.readLines(content);
-      scope._checkpoint = scope._history.length;
-      cb(null, content, scope);
+      scope.stats(function(err) {
+        if(err) return cb(err);
+        scope._history = scope.readLines(content);
+        scope._checkpoint = scope._history.length;
+        cb(null, content, scope);
+      })
     })
   }
   // got string content, convert to an array
@@ -144,8 +163,17 @@ HistoryStore.prototype.getLines = function(checkpoint, length) {
  *  has been read from disc or on error.
  */
 HistoryStore.prototype.read = function(cb) {
+  var scope = this;
   cb = typeof cb === 'function' ? cb : noop;
-  return this.import(cb);
+  return this.import(function(err) {
+    if(err && err.code === 'ENOENT' && create) {
+      return touch(file, function(err) {
+        if(err) return cb(err, scope);
+        scope.read(options, cb);
+      });
+    }
+    cb(err, scope);
+  });
 }
 
 /**
@@ -264,13 +292,7 @@ HistoryStore.prototype._write = function(flush, cb) {
   function write(stream, cb) {
     stream.write(contents, function onwrite(err) {
       if(err) return cb(err, scope);
-      fs.stat(scope.file, function(err, stats) {
-        if(err) return cb(err, scope);
-        stats.file = scope.file;
-        scope._stats = stats;
-        scope._checkpoint = scope._history.length;
-        return cb(err, scope);
-      });
+      scope.stats(cb);
     });
   }
   if(!append) {
@@ -309,18 +331,12 @@ History.prototype.load = function(options, cb) {
   if(stores[file] && !options.force) {
     return cb(null, stores[file]);
   }
-  //console.log('loading %s', file);
-  fs.readFile(file, function(err, contents) {
-    if(err && err.code === 'ENOENT' && create) {
-      return touch(file, function(err) {
-        if(err) return cb(err, scope);
-        scope.load(options, cb);
-      });
-    }
-    if(err) return cb(err, null, scope);
-    var store = new HistoryStore(scope, scope.options, '' + contents);
-    stores[file] = store;
-    cb(null, store, scope);
+
+  var store = new HistoryStore(scope, scope.options);
+  stores[file] = store;
+
+  store.read(function(err) {
+    cb(err, store, scope);
   })
 }
 
