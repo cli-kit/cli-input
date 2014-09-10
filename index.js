@@ -378,11 +378,23 @@ prompt.history = history;
 prompt.History = history.History;
 module.exports = prompt;
 
-var h = history({file: process.env.HOME + '/.rlx/.history'}, function(err, store, hs) {
-  if(err) return console.error(err);
-  //console.log('loaded history');
-  console.dir(hs.getStore());
-});
+var h = history({file: process.env.HOME + '/.rlx/.history'},
+  function(err, store, hs) {
+    if(err) return console.error(err);
+    //console.log('loaded history');
+    //console.dir(hs.getStore());
+
+    store.add('line item, random: ' + Math.random(), function(err, store) {
+      //console.log('added item: %s', store);
+      console.log('isFlushed: %s', store.isFlushed());
+      console.dir(hs.getStore());
+      //store.clear(function() {
+        //console.log('after clear isFlushed: %s', store.isFlushed());
+        //console.dir(hs.getStore());
+      //})
+    });
+  }
+);
 
 //var p = prompt({repeat: true});
 //p.run(sets.confirm, function(er, result) {

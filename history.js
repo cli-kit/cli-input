@@ -24,7 +24,7 @@ var HistoryStore = function(parent, options, lines) {
   this._parent = parent;
   this._history = lines;
   this._checkpoint = this._history.length;
-  this._stream = fs.createWriteStream(this.file, {flags: 'a'});
+  this._stream = fs.createWriteStream(this.file, {flags: 'a+'});
 }
 
 HistoryStore.prototype.isFlushed = function() {
@@ -75,8 +75,8 @@ HistoryStore.prototype.clear = function(cb) {
   var scope = this;
   fs.writeFile(this.file, '', function(err) {
     if(err) return cb(err, scope);
-    scope.history = [];
-    scope.offset = 0;
+    scope._history = [];
+    scope._checkpoint = 0;
     cb(null, scope);
   })
 }
@@ -119,10 +119,6 @@ History.prototype.load = function(options, cb) {
     if(err) return cb(err, null, scope);
     var store = new HistoryStore(scope, scope.options, '' + contents);
     stores[file] = store;
-    store.add('line item, random: ' + Math.random(), function(err, store) {
-      //console.log('added item: %s', store);
-      console.log('isFlushed: %s', store.isFlushed());
-    });
     cb(null, store, scope);
   })
 }
