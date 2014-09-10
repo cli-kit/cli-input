@@ -149,6 +149,20 @@ describe('cli-input:', function() {
     })
   });
 
+  it('should respect limit on import string', function(done) {
+    stash.options.limit = 2;
+    var lines = ['1','2','3'];
+    var expected = ['2', '3'];
+    stash.import(lines.join(EOL), function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      expect(stash.history().length).to.eql(stash.options.limit);
+      expect(stash.history()).to.eql(expected);
+      var contents = fsutil.text(mock.file);
+      expect(contents).to.eql(expected.join(EOL) + EOL);
+      done();
+    })
+  });
 
   it('should clear history file', function(done) {
     stash.clear(function(err) {
