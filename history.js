@@ -65,6 +65,11 @@ HistoryFile.prototype.size = HistoryFile.prototype.length;
 // intepreter
 
 HistoryFile.prototype.interpret = function(cmd, options) {
+  //var pos = this._mirror
+    //&& this._mirror.target
+    //&& typeof this._mirror.target.historyIndex === 'number'
+    //? this._mirror.target.historyIndex : this.position();
+  //console.dir(this._mirror.target.historyIndex);
   options = options || {};
   var val = false;
   var defs = merge(this.options.interpreter, {});
@@ -74,7 +79,7 @@ HistoryFile.prototype.interpret = function(cmd, options) {
   var re = {
     is: /^!/,
     last: /^!!$/,
-    index: /^!(-?)([0-9])+/
+    index: /^!((-?)([0-9]))+/
   }
   if(!re.is.test(cmd)) return false;
 
@@ -87,21 +92,26 @@ HistoryFile.prototype.interpret = function(cmd, options) {
     val = this.start();
     ind = 0;
   }else if(re.index.test(cmd)) {
-    ind = parseInt(cmd.replace(re.index, "$2"))
-    var negated = cmd.replace(re.index, "$1");
+    var num = parseInt(cmd.replace(re.index, "$1"))
+    ind = parseInt(cmd.replace(re.index, "$3"))
+    var negated = cmd.replace(re.index, "$2");
     if(!isNaN(ind)) {
       // history indices are 1 based
       ind--;
+
+      // at a position in the history
+      //if(pos > -1) {
+        //console.log('adjust on current position');
+        //ind = pos + num;
+      //}
+
       // got a valid index
       if(ind > -1 && ind < this.size()) {
-        if(negated) {
-          val = this._history[ind];
-        }else{
-          //console.log('positive %s', ind);
-          //console.dir(this._history);
+        if(!negated) {
           ind = this.size() - ++ind;
           val = this._history[ind];
         }
+        val = this._history[ind];
       }
       console.log('got index reference %s', ind);
     }
@@ -156,6 +166,7 @@ HistoryFile.prototype.position = function() {
   return this._position;
 }
 
+// TODO: rename to seek()
 HistoryFile.prototype.move = function(index) {
   if(index > -1 && index < this._history.length) {
     this._position = index;

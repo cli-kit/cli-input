@@ -405,6 +405,7 @@ var h = history({file: process.env.HOME + '/.rlx/.history', close: true},
       //console.log('val: %s', val);
       var histitem = store.interpret(val);
       console.log('got interpreted history item %s', histitem);
+      //console.dir(p.readline);
       //console.dir(p.readline.history);
       //console.dir(store.history());
     })
