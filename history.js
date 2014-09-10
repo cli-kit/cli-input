@@ -2,6 +2,7 @@ var EOL = require('os').EOL
   , fs = require('fs')
   , assert = require('assert')
   , path = require('path')
+  , touch = require('touch')
   , util = require('util')
   , events = require('events');
 
@@ -106,8 +107,6 @@ HistoryStore.prototype.pop = function() {
   var contents = this.getLines();
 }
 
-//HistoryStore.prototype.close = function
-
 HistoryStore.prototype.clear = function(cb) {
   var scope = this;
   fs.writeFile(this.file, '', function(err) {
@@ -141,17 +140,13 @@ History.prototype.load = function(options, cb) {
   if(stores[file] && !options.force) {
     return cb(null, stores[file]);
   }
-  function touch() {
-    var st = fs.createWriteStream(file, function(err) {
-      if(err) return cb(err, null, scope);
-      st.end();
-      st.destroy();
-      load(options, cb);
-    });
-  }
+  //console.log('loading %s', file);
   fs.readFile(file, function(err, contents) {
     if(err && err.code === 'ENOENT' && create) {
-      return touch();
+      return touch(file, function(err) {
+        if(err) return cb(err, scope);
+        scope.load(options, cb);
+      });
     }
     if(err) return cb(err, null, scope);
     var store = new HistoryStore(scope, scope.options, '' + contents);
@@ -169,6 +164,11 @@ History.prototype.getStore = function(file) {
 }
 
 function history(options, cb) {
+  if(typeof options === 'function') {
+    cb = options;
+    options = null;
+  }
+  options = options || {};
   var h = new History(options);
   if(cb) {
     h.load(options, cb);

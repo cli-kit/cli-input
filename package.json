@@ -27,7 +27,8 @@
     "async": "^0.9.0",
     "cli-native": "^1.0.0",
     "cli-util": "^1.1.17",
-    "mute-stream": "0.0.4"
+    "mute-stream": "0.0.4",
+    "touch": "0.0.3"
   },
   "devDependencies": {
     "mocha": "~1.17.0",
@@ -38,7 +39,8 @@
     "node >= 0.10.21"
   ],
   "scripts": {
-    "test": "istanbul cover _mocha -- -u bdd --recursive --reporter list -A test/unit/"
+    "pretest": "rm -rfv ./target && mkdir -p ./target",
+    "test": "istanbul cover _mocha -- -u bdd --recursive --reporter list -A test/spec/"
   },
   "config": {}
 }
