@@ -8,6 +8,8 @@ var EOL = require('os').EOL
 
 var stores = {};
 
+function noop(){};
+
 var HistoryStore = function(parent, options, lines) {
   options = options || {};
   lines = lines.split('\n');
@@ -86,8 +88,8 @@ HistoryStore.prototype.add = function(line, options, cb) {
     cb = options;
     options = null;
   }
-  cb = typeof cb === 'function' ? cb : function noop(){};
   options = options || {};
+  cb = typeof cb === 'function' ? cb : noop;
   var scope = this
     , flush = options.flush || this.options.flush;
   if(!this.options.duplicates && ~this._history.indexOf(line)) {
@@ -101,9 +103,32 @@ HistoryStore.prototype.add = function(line, options, cb) {
   this._write(flush, cb);
 }
 
-HistoryStore.prototype.pop = function() {
+HistoryStore.prototype.pop = function(options, cb) {
+  if(typeof options === 'function') {
+    cb = options;
+    options = null;
+  }
+  options = options || {};
+  var scope = this
+    , flush = options.flush || this.options.flush;
   var item = this._history.pop();
   var contents = this.getLines();
+  var len = Buffer.byteLength(item + EOL);
+  cb = typeof cb === 'function' ? cb : noop;
+  if(!flush) {
+    // not flushing to disc, so this acts more like peek()
+    this._history.push(item);
+    return cb(null, item, scope);
+  }
+  var length = this._stats.size - len;
+  fs.ftruncate(this._stream.fd, length, function(err) {
+    if(err) {
+      // TODO: we need to re-initialize from the state on disc
+    }else{
+      scope._checkpoint = scope._history.length;
+    }
+    cb(err, item, scope);
+  })
 }
 
 HistoryStore.prototype.clear = function(cb) {

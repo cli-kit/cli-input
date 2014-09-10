@@ -74,6 +74,17 @@ describe('cli-input:', function() {
     })
   });
 
+  it('should pop history item', function(done) {
+    stash.pop(function(err) {
+      expect(err).to.eql(null);
+      expect(stash.isFlushed()).to.eql(true);
+      var contents = fsutil.text(mock.file);
+      //console.dir(contents);
+      expect(contents).to.eql(mock.lines[0] + EOL);
+      done();
+    })
+  });
+
   it('should clear history file', function(done) {
     stash.clear(function(err) {
       expect(err).to.eql(null);
