@@ -19,30 +19,31 @@ var HistoryStore = function(parent, options, lines) {
   options.flush = options.flush !== undefined ? options.flush : true;
   options.duplicates = options.duplicates !== undefined
     ? options.duplicates : false;
-  this.parent = parent;
   this.file = options.file;
   this.options = options;
-  this.history = lines;
-  console.dir(lines);
-  this.stream = fs.createWriteStream(this.file, {flags: 'a'});
-  this.offset = this.history.length;
+  this._parent = parent;
+  this._history = lines;
+  //console.dir(lines);
+  this._stream = fs.createWriteStream(this.file, {flags: 'a'});
+  this._checkpoint = this._history.length;
 }
 
 HistoryStore.prototype.isFlushed = function() {
-  return this.offset === this.history.length;
+  return this._checkpoint === this._history.length;
 }
 
 HistoryStore.prototype.write = function(flush, cb) {
   var scope = this;
-  if(!flush || this.offset === this.history.length) return cb(null, scope);
-  console.log('write to disc %s %s', this.offset, this.history.length);
-  var lines = this.history.slice(this.offset, this.history.length);
+  if(!flush || this._checkpoint === this._history.length) return cb(null, scope);
+  console.log('write to disc %s %s', this._checkpoint, this._history.length);
+  var lines = this._history.slice(this._checkpoint, this._history.length);
   // add trailing newline
   if(lines[lines.length - 1]) {
     lines.push('');
   }
   var append = lines.join(EOL);
   console.log('write to disc %j', append);
+  //this._stream =
 
 }
 
@@ -55,7 +56,7 @@ HistoryStore.prototype.add = function(line, options, cb) {
   options = options || {};
   var scope = this
     , flush = options.flush || this.options.flush;
-  if(!this.options.duplicates && ~this.history.indexOf(line)) {
+  if(!this.options.duplicates && ~this._history.indexOf(line)) {
     //console.log('ignoring duplicate');
     return cb(null, scope);
   }
@@ -63,7 +64,7 @@ HistoryStore.prototype.add = function(line, options, cb) {
   assert(typeof line === 'string', 'history entry must be a string')
   line = '' + line;
   line = line.replace(/\r?\n$/, '');
-  this.history.push(line);
+  this._history.push(line);
   this.write(flush, cb);
 }
 
