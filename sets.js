@@ -2,12 +2,14 @@ var utils = require('cli-util')
   , merge = utils.merge;
 
 var username = {
+  type: 'username',
   key: 'name',
   message: '<username>',
   schema: {type: 'string'}
 }
 
 var password = {
+  type: 'password',
   key: 'pass',
   message: '<password>',
   silent: true,

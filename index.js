@@ -85,6 +85,16 @@ var Prompt = function(options, rl) {
 
 util.inherits(Prompt, events.EventEmitter);
 
+Prompt.prototype.setOptions = function(opts) {
+  if(!this._original) {
+    this._original = this.options;
+  }
+  if(opts) {
+    this.options = merge(opts, this.options, null, true);
+  }
+  return this.options;
+}
+
 Prompt.prototype.use = function(props) {
   this._use = merge(props, this._use);
 }
@@ -190,7 +200,7 @@ Prompt.prototype.format = function(options) {
 }
 
 Prompt.prototype.merge = function(options) {
-  var o = merge(this.options, {}), fmt;
+  var o = merge(this.options, {}, null, true), fmt;
   o = merge(options, o, null, true);
   if(typeof this.options.prompt === 'function') {
     o.prompt = this.options.prompt(options, o, this);
@@ -202,6 +212,9 @@ Prompt.prototype.merge = function(options) {
     // #3860, fix available from 0.11.3 node
     o.length = fmt.raw.length;
     o.prompt = fmt.prompt;
+  }
+  if(o.silent && !o.replace) {
+    o.replace = this.options.replace;
   }
   return o;
 }
@@ -275,8 +288,10 @@ Prompt.prototype.exec = function(options, cb) {
         , reject = options.reject;
       if(accept.test(val)) {
         val = {result: val, accept: true}
+        scope.emit('accepted', val, scope);
       }else if(reject.test(val)) {
         val = {result: val, accept: false}
+        scope.emit('rejected', val, scope);
       }else{
         val = {result: val, accept: null}
         scope.emit('unacceptable', val, options, scope);
@@ -303,7 +318,11 @@ Prompt.prototype.exec = function(options, cb) {
       }
     }
 
-    scope.emit('value', val, options, scope);
+    if(options.type === undefined) {
+      scope.emit('value', val, options, scope);
+    }else{
+      scope.emit(options.type, val, options, scope);
+    }
 
     if(schema && options.schema && options.key) {
       var source = {}, descriptor = {}

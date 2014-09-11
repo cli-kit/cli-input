@@ -56,6 +56,8 @@ function read (opts, cb) {
   }
 
   if(silent) {
+    //console.log('creating silent mute stream');
+    //console.dir(opts.replace);
     m = new Mute({ replace: opts.replace, prompt: prompt })
     m.pipe(output, {end: false})
     output = m;
@@ -84,8 +86,8 @@ function read (opts, cb) {
 
   // TODO: work out the line listener leak (infinite mode)
   // TODO: this should not be necessary
-  rl.removeAllListeners('line');
-  rl.removeAllListeners('error');
+  //rl.removeAllListeners('line');
+  //rl.removeAllListeners('error');
 
   rl.on('line', onLine);
   rl.on('error', onError);
