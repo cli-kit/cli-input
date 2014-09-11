@@ -42,15 +42,11 @@ function read (opts, cb) {
   opts.rl = opts.rl || {};
   var prompt = (opts.prompt || '');
   var silent = opts.silent
-  var editDef = false
   var timeout = opts.timeout
     , rlopts
     , m;
 
   var def = '' + opts.default || '';
-  if (def && opts.edit) {
-    editDef = true;
-  }
 
   var terminal = !!(opts.terminal || output.isTTY)
   var mrl;
@@ -142,11 +138,6 @@ function read (opts, cb) {
 
     // truncate the \n at the end.
     line = line.replace(/\r?\n$/, '')
-    //var isDefault = !!(editDef && line === def)
-    //if (def && !line) {
-      //isDefault = true
-      //line = def
-    //}
 
     done(null, line);
   }
