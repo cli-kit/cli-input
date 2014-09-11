@@ -262,7 +262,7 @@ Prompt.prototype.exec = function(options, cb) {
     }
 
     //console.log('emitting value %j', options.key);
-    //console.log('emitting value %s', cb);
+    console.log('emitting value %s', cb);
     //
 
     if(options.history === false) {
@@ -363,7 +363,6 @@ Prompt.prototype.run = function(prompts, opts, cb) {
   var map = {};
   async.concatSeries(prompts, function(item, callback) {
     scope.exec(item, function(err, result) {
-      if(scope._paused) return callback(paused);
       if(item.key) {
         map[item.key] = result;
       }
@@ -397,6 +396,23 @@ prompt.sets = sets;
 prompt.history = history;
 prompt.History = history.History;
 module.exports = prompt;
+
+
+//var p = prompt({infinite: true});
+//p.on('value', function(val, options) {
+  ////console.dir(val);
+  //console.dir(options);
+  //if(val === 'passwd') {
+    //p.pause();
+    //p.run([sets.password[0]], function(err, result) {
+      //p.resume();
+    //})
+  //}
+//})
+//p.run(null, function(er, result) {
+  ////console.dir(result);
+  ////process.exit();
+//});
 
 //var h = history({file: process.env.HOME + '/.rlx/.history', exit: true},
   //function(err, store, hs) {

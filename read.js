@@ -132,7 +132,7 @@ function read (opts, cb) {
 
   function onLine (line) {
     if(silent) {
-      //output.unmute()
+      output.unmute()
       //output.write('\r\n')
     }
 
