@@ -84,18 +84,15 @@ function read (opts, cb) {
 
   var timer;
 
-  // TODO: work out the line listener leak (infinite mode)
-  // TODO: this should not be necessary
-  //rl.removeAllListeners('line');
-  //rl.removeAllListeners('error');
-
   rl.on('line', onLine);
   rl.on('error', onError);
 
-  rl.on('SIGINT', function () {
+  function onsigint() {
     rl.close()
     onError(errors.cancel);
-  })
+  }
+
+  process.once('SIGINT', onsigint);
 
   if(timeout) {
     timer = setTimeout(function () {
