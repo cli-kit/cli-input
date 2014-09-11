@@ -84,15 +84,21 @@ function read (opts, cb) {
 
   var timer;
 
+  // TODO: work out the line listener leak (infinite mode)
+  // TODO: this should not be necessary
+  rl.removeAllListeners('line');
+  rl.removeAllListeners('error');
+  //process.removeAllListeners('SIGINT');
+
   rl.on('line', onLine);
   rl.on('error', onError);
 
   function onsigint() {
-    rl.close()
+    if(rl) rl.close()
     onError(errors.cancel);
   }
 
-  process.once('SIGINT', onsigint);
+  rl.once('SIGINT', onsigint);
 
   if(timeout) {
     timer = setTimeout(function () {
@@ -137,6 +143,10 @@ function read (opts, cb) {
 
     // truncate the \n at the end.
     line = line.replace(/\r?\n$/, '')
+
+    if(!line && opts.default) {
+      line = opts.default;
+    }
 
     done(null, line);
   }
