@@ -98,7 +98,7 @@ function read (opts, cb) {
     onError(errors.cancel);
   }
 
-  rl.once('SIGINT', onsigint);
+  process.once('SIGINT', onsigint);
 
   if(timeout) {
     timer = setTimeout(function () {
@@ -109,7 +109,7 @@ function read (opts, cb) {
   function done (err, line) {
     rl.removeListener('line', onLine);
     rl.removeListener('error', onError);
-    rl.removeAllListeners('SIGINT');
+    process.removeListener('SIGINT', onsigint);
 
     //console.log('read done() callback %s', rl.listeners('line').length);
     //
