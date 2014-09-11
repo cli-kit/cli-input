@@ -85,16 +85,6 @@ var Prompt = function(options, rl) {
 
 util.inherits(Prompt, events.EventEmitter);
 
-Prompt.prototype.setOptions = function(opts) {
-  if(!this._original) {
-    this._original = this.options;
-  }
-  if(opts) {
-    this.options = merge(opts, this.options, null, true);
-  }
-  return this.options;
-}
-
 Prompt.prototype.use = function(props) {
   this._use = merge(props, this._use);
 }
@@ -200,8 +190,8 @@ Prompt.prototype.format = function(options) {
 }
 
 Prompt.prototype.merge = function(options) {
-  var o = merge(this.options, {}, null, true), fmt;
-  o = merge(options, o, null, true);
+  var o = merge(this.options, {}, {copy: true}), fmt;
+  o = merge(options, o, {copy: true});
   if(typeof this.options.prompt === 'function') {
     o.prompt = this.options.prompt(options, o, this);
   }else{
@@ -318,6 +308,10 @@ Prompt.prototype.exec = function(options, cb) {
       }
     }
 
+    if(typeof val === 'string') {
+      val = val.split(/\s+/);
+    }
+
     if(options.type === undefined) {
       scope.emit('value', val, options, scope);
     }else{
@@ -354,7 +348,8 @@ Prompt.prototype.resume = function(options, cb) {
   if(!this._paused) return;
   var scope = this;
   this._paused = false;
-  if(this.options.infinite) {
+  options = options || {};
+  if(options.infinite || this.options.infinite) {
     this.exec(options || this.getDefaultPrompt(), cb);
   }
   this.emit('resume', this);
@@ -377,8 +372,6 @@ Prompt.prototype.run = function(prompts, opts, cb) {
   opts = opts || {};
   var scope = this, options = this.options;
   prompts = prompts || [scope.getDefaultPrompt()];
-  var defs = merge(this.options, {});
-  opts = merge(opts, defs);
   var map = {};
   async.concatSeries(prompts, function(item, callback) {
     scope.exec(item, function(err, result) {
