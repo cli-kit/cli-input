@@ -90,8 +90,8 @@ Prompt.prototype.use = function(props) {
 }
 
 Prompt.prototype.transform = function(k, v, options) {
-  var fmts = merge(this.formats, {});
-  fmts = merge(options.formats || {}, fmts);
+  var fmts = merge(this.formats, {}, {copy: true});
+  fmts = merge(options.formats || {}, fmts, {copy: true});
   if(fmts[k] && v) {
     v = util.format(fmts[k], v);
   }
