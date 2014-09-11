@@ -308,11 +308,10 @@ Prompt.prototype.exec = function(options, cb) {
       }
     }
 
-    if(typeof val === 'string') {
-      val = val.split(/\s+/);
-    }
-
     if(options.type === undefined) {
+      if(typeof val === 'string') {
+        val = val.split(/\s+/);
+      }
       scope.emit('value', val, options, scope);
     }else{
       scope.emit(options.type, val, options, scope);
