@@ -117,8 +117,8 @@ function read (opts, cb) {
     clearTimeout(timer);
     if(silent) {
       mrl.close();
-      rl.resume();
-      opts.rl.output = process.stdout;
+      //rl.resume();
+      //opts.rl.output = process.stdout;
       output.unmute()
       output.end()
       close();

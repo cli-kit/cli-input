@@ -424,6 +424,12 @@ module.exports = prompt;
   ////console.dir(result);
   ////process.exit();
 //});
+//
+//var p = prompt({repeat: true});
+//p.run(sets.userpass, function(er, result) {
+  //console.dir(result);
+  //process.exit();
+//});
 
 //var h = history({file: process.env.HOME + '/.rlx/.history', exit: true},
   //function(err, store, hs) {
