@@ -45,7 +45,7 @@
   },
   "config": {},
   "mdp": {
-    "title": "prompt",
+    "title": "Prompt",
     "pedantic": true,
     "include": "doc/readme",
     "require": "lib",
