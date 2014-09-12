@@ -57,11 +57,8 @@
         "inc": [
           "introduction.md",
           "install.md",
-          "example.md"
-        ]
-      },
-      {
-        "inc": [
+          "usage.md",
+          "example.md",
           "developer.md"
         ]
       }

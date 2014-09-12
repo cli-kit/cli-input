@@ -3,6 +3,7 @@ Table of Contents
 
 * [Prompt](#prompt)
   * [Install](#install)
+  * [Usage](#usage)
   * [Examples](#examples)
   * [Developer](#developer)
     * [Test](#test)
@@ -17,6 +18,17 @@ Prompt and user input library, a component of the cli [toolkit](https://github.c
 
 ```
 npm i cli-input --save
+```
+
+## Usage
+
+```javscript
+var prompt = require('cli-input');
+var ps = prompt({infinite: true});
+ps.on('value', function(value, options, ps) {
+  // do something with value
+})
+rs.run();
 ```
 
 ## Examples
