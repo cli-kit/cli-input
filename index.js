@@ -426,7 +426,6 @@ Prompt.prototype.select = function(options, cb) {
   function show() {
     scope.exec(prompt, function(err, res) {
       if(err) return cb(err);
-      //console.log('res %s', res);
       var int = parseInt(res);
       var val = res;
       if(isNaN(int)) {

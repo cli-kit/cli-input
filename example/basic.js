@@ -1,4 +1,5 @@
 var prompt = require('..');
+var name = require('path').basename(process.argv[1]);
 
 /**
  *  A basic prompt that shows the default behaviour
@@ -6,6 +7,6 @@ var prompt = require('..');
  */
 var ps = prompt();
 ps.prompt(function(err, val) {
-  console.log('you typed: "%s"', val);
+  console.log('%s | you typed: "%s"', name, val);
   process.exit(0);
 });

@@ -1,11 +1,13 @@
 var prompt = require('..')
   , exec = require('child_process').exec;
 
+var name = require('path').basename(process.argv[1]);
+
 /**
  *  An infinite REPL style prompt.
  */
-console.log('repl: send SIGINT (Ctrl^C) to exit');
-console.warn('repl: commands are executed via the shell, be careful');
+console.log('%s | send SIGINT (Ctrl^C) to exit', name);
+console.warn('%s | commands are executed via the shell, be careful', name);
 var ps = prompt({infinite: true});
 ps.on('value', function(val) {
   var cmd = val.join(' ');

@@ -6,10 +6,11 @@ var prompt = require('..')
   , repeat = utils.repeat
   , wrap = utils.wrap;
 
+var name = require('path').basename(process.argv[1]);
+
 /**
  *  Use ANSI escape sequences.
  */
-
 var delim = repeat(80, '+');
 var available = Object.keys(ansi.codes.colors).concat(
   Object.keys(ansi.codes.attrs));
@@ -49,7 +50,7 @@ ps.run(set, function(err, res) {
   if(res && res.map) {
     if(!~available.indexOf(res.map.color)) {
       return console.error(
-        'error: unknown color attribute name "%s"', res.map.color);
+        '%s ! unknown color attribute name "%s"', name, res.map.color);
     }
     color = res.map.color;
   }

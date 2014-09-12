@@ -3,6 +3,8 @@ var prompt = require('..')
   , definitions = sets.definitions
   , colors = require('./colors');
 
+var name = require('path').basename(process.argv[1]);
+
 /**
  *  A silent prompt to collect a password with ANSI escape sequences.
  *
@@ -30,7 +32,7 @@ ps.on('empty', function() {
 ps.run([def], function(err, res) {
   if(err) console.error(err);
   if(res && res.map) {
-    console.log('password: %s', res.map.pass);
+    console.log('%s | password: %s', name, res.map.pass);
   }
   process.exit(err ? 1 : 0);
 });

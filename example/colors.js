@@ -16,3 +16,8 @@ var colors = {
 }
 
 module.exports = colors;
+
+if(!module.parent) {
+  console.error('utility module, not an example');
+  process.exit(1);
+}
