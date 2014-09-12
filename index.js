@@ -355,16 +355,26 @@ Prompt.prototype.multiline = function(options, cb, lines) {
 
   function onkeypress(c, props) {
     if(c === key) {
+      input.removeListener('keypress', onkeypress);
       if(newline) {
         output.write(EOL);
       }
-      input.removeListener('keypress', onkeypress);
+      if(options.json) {
+        try {
+          console.dir(lines);
+          lines = JSON.parse(lines);
+        }catch(e) {
+          return cb(e, lines);
+        }
+      }
       return cb(null, lines);
     }
     lines += c;
   }
 
   input.on('keypress', onkeypress);
+
+  prompt.expand = false;
 
   scope.exec(prompt, function(err, line) {
     input.removeListener('keypress', onkeypress);
