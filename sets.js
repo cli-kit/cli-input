@@ -12,6 +12,7 @@ var password = {
   type: 'password',
   key: 'pass',
   message: '<password>',
+  history: false,
   silent: true,
   schema: {type: 'string'},
   required: true,
@@ -31,6 +32,13 @@ var confirm = {
   reject: /^no?$/     // accepts no | n
 }
 
+var question = {
+  key: 'question',
+  message: '%s?',
+  schema: {type: 'string'},
+  expand: false
+}
+
 // a password prompt that confirms passwords match (equal)
 var newpass = merge(password, {});
 newpass.type = 'password';
@@ -42,5 +50,6 @@ module.exports = {
   password: [password],
   userpass: [username, password],
   confirm: [confirm],
-  newpass: [newpass]
+  newpass: [newpass],
+  question: [question],
 }

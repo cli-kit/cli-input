@@ -319,7 +319,7 @@ Prompt.prototype.exec = function(options, cb) {
     if(options.type === undefined) {
 
       // convert to command array for items with no type
-      if(typeof val === 'string') {
+      if(typeof val === 'string' && options.expand !== false) {
         val = val.split(/\s+/);
       }
 

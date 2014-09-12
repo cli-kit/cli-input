@@ -1,13 +1,10 @@
 var expect = require('chai').expect;
 var mock = require('../util/mock');
 var fsutil = require('../util/fsutil');
-var EOL = require('os').EOL;
 var prompt = require('../..')
   , sequencer = require('../../sequencer')
   , fsutil = require('../util/fsutil')
   , sets = prompt.sets;
-
-//process.stdin.resume();
 
 describe('cli-input:', function() {
   this.timeout(5000);
@@ -20,7 +17,6 @@ describe('cli-input:', function() {
         msg: 'are you sure? (y/n) ',
         input: 'n',
         cb: function(res, evt, value, options, ps) {
-          // check the displayed prompt matches our defined sequence *msg*
           expect(res.isPromptEqual()).to.eql(true);
           expect(value.result).to.eql('n');
           expect(value.accept).to.eql(false);
@@ -41,7 +37,6 @@ describe('cli-input:', function() {
         msg: 'are you sure? (y/n) ',
         input: 'y',
         cb: function(res, evt, value, options, ps) {
-          // check the displayed prompt matches our defined sequence *msg*
           expect(res.isPromptEqual()).to.eql(true);
           expect(value.result).to.eql('y');
           expect(value.accept).to.eql(true);
