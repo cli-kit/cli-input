@@ -1,18 +1,18 @@
 var prompt = require('..')
   , sets = prompt.sets
   , definitions = sets.definitions
-  , ansi = require('ttycolor').ansi;
-
-var repeat = require('cli-util').repeat;
-var wrap = require('cli-util').wrap;
-var delim = repeat(80, '+');
-
-var available = Object.keys(ansi.codes.colors).concat(
-  Object.keys(ansi.codes.attrs));
+  , ansi = require('ttycolor').ansi
+  , utils = require('cli-util')
+  , repeat = utils.repeat
+  , wrap = utils.wrap;
 
 /**
  *  Use ANSI escape sequences.
  */
+
+var delim = repeat(80, '+');
+var available = Object.keys(ansi.codes.colors).concat(
+  Object.keys(ansi.codes.attrs));
 
 console.log('ansi: send SIGINT (Ctrl^C) to exit');
 console.log(delim);
@@ -37,10 +37,14 @@ var colors = {
 }
 
 var type = definitions.question.clone(
-  {key: 'color', message: 'enter a %s name:', parameters: ['color']});
-
-color.required = true;
-color.repeat = true;
+  {
+    key: 'color',
+    message: 'enter a %s name:',
+    parameters: ['color'],
+    required: true,
+    repeat: true
+  }
+);
 
 var set = [type];
 var ps = prompt({infinite: true, colors: colors});
