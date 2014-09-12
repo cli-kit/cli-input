@@ -3,6 +3,7 @@ Table of Contents
 
 * [Prompt](#prompt)
   * [Install](#install)
+  * [Features](#features)
   * [Usage](#usage)
     * [Options](#options)
   * [Examples](#examples)
@@ -20,6 +21,16 @@ Prompt and user input library, a component of the cli [toolkit](https://github.c
 ```
 npm i cli-input --save
 ```
+
+## Features
+
+* ANSI escape sequences fully supported.
+* Comprehensive history file support.
+* Schema validation.
+* Native type coercion.
+* Collections of common prompt sets.
+* Confirmation prompts (binary response).
+* Silent prompts (passwords etc.)
 
 ## Usage
 

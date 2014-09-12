@@ -57,6 +57,7 @@
         "inc": [
           "introduction.md",
           "install.md",
+          "features.md",
           "usage.md",
           "example.md",
           "developer.md"
