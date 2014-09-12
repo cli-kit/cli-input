@@ -33,6 +33,7 @@
     "chai": "~1.8.1",
     "istanbul": "~0.2.4",
     "mocha": "~1.17.0",
+    "mute-stream": "0.0.4",
     "ttycolor": "^0.8.10"
   },
   "engine": [
