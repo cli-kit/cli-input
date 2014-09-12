@@ -20,7 +20,6 @@ describe('cli-input:', function() {
         msg: 'how would you like that? ',
         input: 'spicy please',
         cb: function(res, evt, value, options, ps) {
-          //delete sets.question[0].parameters;
           expect(res.isPromptEqual()).to.eql(true);
           expect(value).to.eql('spicy please');
           expect(evt).to.eql('value');
