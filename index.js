@@ -1,4 +1,5 @@
-var events = require('events')
+var EOL = require('os').EOL
+  , events = require('events')
   , util = require('util')
   , path = require('path')
   , async = require('async')
@@ -8,6 +9,7 @@ var events = require('events')
   , read = require('./lib/read')
   , history = require('./lib/history')
   , sets = require('./lib/sets')
+  , definitions = sets.definitions
   , PromptDefinition = require('./lib/definition');
 
 var schema;
@@ -33,13 +35,18 @@ var Prompt = function(options, rl) {
 
   // no not store these in the options
   // to prevent cyclical reference on merge
-  this.input = options.input;
-  this.output = options.output;
+  this.input = options.input || this.rl.input;
+  this.output = options.output || this.rl.output;
   delete options.input;
   delete options.output;
 
   this.formats = options.formats || {};
+
+  // format for default values
   this.formats.default = this.formats.default || '(%s) ';
+
+  // format for select options
+  this.formats.option = this.formats.select || '%s) %s';
 
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
@@ -391,6 +398,49 @@ Prompt.prototype.run = function(prompts, opts, cb) {
       return scope.run(prompts, opts, cb);
     }
   })
+}
+
+/**
+ *  Select from a list of options.
+ *
+ *  Display numbers are 1 based.
+ */
+Prompt.prototype.select = function(options, cb) {
+  options = options || {};
+  var scope = this, i, s;
+  var output = options.output || this.output;
+  var list = options.list || [];
+  var validate = options.validate !== undefined ? options.validate : true;
+  var map = [];
+  var prompt = options.prompt || definitions.option.clone();
+  for(i = 0;i < list.length;i++) {
+    s = util.format(this.formats.option, i + 1, list[i]);
+    map.push({display: i + 1, index: i, value: list[i]});
+    output.write(s + EOL);
+  }
+
+  function show() {
+    scope.exec(prompt, function(err, res) {
+      if(err) return cb(err);
+      //console.log('res %s', res);
+      var int = parseInt(res);
+      var val = res;
+      if(isNaN(int)) {
+        scope.emit('invalid', res, int, options, scope);
+      }else{
+        int--;
+        val = map[int];
+        if(validate && !val) {
+          scope.emit('invalid', res, int, options, scope);
+        }
+      }
+      if(options.repeat || prompt.repeat && (!val || isNaN(int))) {
+        return show();
+      }
+      cb(err, val);
+    });
+  }
+  show();
 }
 
 function prompt(options) {
