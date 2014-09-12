@@ -345,26 +345,29 @@ Prompt.prototype.multiline = function(options, cb, lines) {
   }
   options = options || {};
   lines = lines || '';
+
   var scope = this
-    , opts = {input: this.input, output: this.output}
+    , input = this.input
+    , output = this.output
     , key = options.key || '\u0004'
-    , newline = options.newline !== undefined ? options.newline : true;
+    , newline = options.newline !== undefined ? options.newline : true
+    , prompt = options.prompt || {blank: true};
 
   function onkeypress(c, props) {
     if(c === key) {
       if(newline) {
-        opts.output.write(EOL);
+        output.write(EOL);
       }
-      opts.input.removeListener('keypress', onkeypress);
+      input.removeListener('keypress', onkeypress);
       return cb(null, lines);
     }
     lines += c;
   }
-  opts.input.on('keypress', onkeypress);
 
-  var prompt = options.prompt || {blank: true};
+  input.on('keypress', onkeypress);
+
   scope.exec(prompt, function(err, line) {
-    opts.input.removeListener('keypress', onkeypress);
+    input.removeListener('keypress', onkeypress);
     if(err) return cb(err);
     lines += EOL;
     scope.multiline(options, cb, lines);
