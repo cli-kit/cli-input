@@ -228,6 +228,151 @@ Prompt.prototype.getDefaultPrompt = function() {
   }
 }
 
+Prompt.prototype.pause = function() {
+  this._paused = true;
+  this.emit('pause', this);
+}
+
+Prompt.prototype.resume = function(options, cb) {
+  if(!this._paused) return;
+  var scope = this;
+  this._paused = false;
+  options = options || {};
+  if(options.infinite || this.options.infinite) {
+    this.exec(options || this.getDefaultPrompt(), cb);
+  }
+  this.emit('resume', this);
+}
+
+Prompt.prototype.prompt = function(options, cb) {
+  this.exec(options, cb);
+}
+
+Prompt.prototype.run = function(prompts, opts, cb) {
+  if(typeof prompts === 'function') {
+    cb = prompts;
+    prompts = null;
+  }
+  if(typeof opts === 'function') {
+    cb = opts;
+    opts = null;
+  }
+  cb = typeof cb === 'function' ? cb : function noop(){};
+  opts = opts || {};
+  var scope = this, options = this.options;
+  prompts = prompts || [scope.getDefaultPrompt()];
+  var map = {};
+  async.concatSeries(prompts, function(item, callback) {
+    scope.exec(item, function(err, result) {
+      if(item.key) {
+        map[item.key] = result;
+      }
+      callback(err, result);
+    });
+  }, function(err, result) {
+    if(err && err.cancel) return scope.emit('cancel', prompts, scope);
+    if(err && err.timeout) return scope.emit('timeout', prompts, scope);
+    if(err && err.paused) return scope.emit('paused', prompts, scope);
+    if(err) {
+      scope.emit('error', prompts, scope);
+    }
+    var res = {list: result, map: map};
+    scope.emit('complete', res);
+    cb(null, res);
+    if((opts.infinite || scope.options.infinite) && !scope._paused) {
+      return scope.run(prompts, opts, cb);
+    }
+  })
+}
+
+/**
+ *  Default implementation for formatting option values.
+ */
+Prompt.prototype.option = function(index, value) {
+  return util.format(this.formats.option, index + 1, value);
+}
+
+/**
+ *  Select from a list of options.
+ *
+ *  Display numbers are 1 based.
+ */
+Prompt.prototype.select = function(options, cb) {
+  if(typeof options === 'function') {
+    cb = options;
+    options = null;
+  }
+  options = options || {};
+  var scope = this, i, s, map = [];
+  var output = options.output || this.output;
+  var list = options.list || [];
+  var validate = options.validate !== undefined
+    ? options.validate : true;
+  var formatter = typeof options.formatter === 'function'
+    ? options.formatter : this.option.bind(this);
+  var prompt = options.prompt || definitions.option.clone();
+  for(i = 0;i < list.length;i++) {
+    s = formatter(i, list[i]);
+    map.push({display: i + 1, index: i, value: list[i]});
+    output.write(s + EOL);
+  }
+  function show() {
+    scope.exec(prompt, function(err, res) {
+      if(err) return cb(err);
+      var int = parseInt(res)
+        , val = !isNaN(int) ? map[--int] : null
+        , invalid = isNaN(int) || !val;
+      if(validate && invalid) {
+        scope.emit('invalid', res, int, options, scope);
+      }
+      if(options.repeat || prompt.repeat && (validate && invalid)) {
+        return show();
+      }
+      if(!invalid) cb(err, val, int, res);
+    });
+  }
+  show();
+}
+
+/**
+ *  Collect multiline into a string.
+ */
+Prompt.prototype.multiline = function(options, cb, lines) {
+  if(typeof options === 'function') {
+    cb = options;
+    options = null;
+  }
+  options = options || {};
+  lines = lines || '';
+  var scope = this
+    , opts = {input: this.input, output: this.output}
+    , key = options.key || '\u0004'
+    , newline = options.newline !== undefined ? options.newline : true;
+
+  function onkeypress(c, props) {
+    if(c === key) {
+      if(newline) {
+        opts.output.write(EOL);
+      }
+      opts.input.removeListener('keypress', onkeypress);
+      return cb(null, lines);
+    }
+    lines += c;
+  }
+  opts.input.on('keypress', onkeypress);
+
+  var prompt = options.prompt || {blank: true};
+  scope.exec(prompt, function(err, line) {
+    opts.input.removeListener('keypress', onkeypress);
+    if(err) return cb(err);
+    lines += EOL;
+    scope.multiline(options, cb, lines);
+  });
+}
+
+/**
+ *  @private
+ */
 Prompt.prototype.exec = function(options, cb) {
   if(typeof options === 'function') {
     cb = options;
@@ -243,6 +388,10 @@ Prompt.prototype.exec = function(options, cb) {
   opts.rl = this.rl;
   opts.emitter = this;
   this.emit('before', opts, options, scope);
+  if(options.blank) {
+    opts.prompt = '';
+    opts.length = 0;
+  }
   read(opts, function(err, value, rl) {
     if(err) return cb(err);
     //console.log('got read value "%s" (%s)', value, typeof value);
@@ -347,107 +496,6 @@ Prompt.prototype.exec = function(options, cb) {
   });
 }
 
-Prompt.prototype.pause = function() {
-  this._paused = true;
-  this.emit('pause', this);
-}
-
-Prompt.prototype.resume = function(options, cb) {
-  if(!this._paused) return;
-  var scope = this;
-  this._paused = false;
-  options = options || {};
-  if(options.infinite || this.options.infinite) {
-    this.exec(options || this.getDefaultPrompt(), cb);
-  }
-  this.emit('resume', this);
-}
-
-Prompt.prototype.prompt = function(options, cb) {
-  this.exec(options, cb);
-}
-
-Prompt.prototype.run = function(prompts, opts, cb) {
-  if(typeof prompts === 'function') {
-    cb = prompts;
-    prompts = null;
-  }
-  if(typeof opts === 'function') {
-    cb = opts;
-    opts = null;
-  }
-  cb = typeof cb === 'function' ? cb : function noop(){};
-  opts = opts || {};
-  var scope = this, options = this.options;
-  prompts = prompts || [scope.getDefaultPrompt()];
-  var map = {};
-  async.concatSeries(prompts, function(item, callback) {
-    scope.exec(item, function(err, result) {
-      if(item.key) {
-        map[item.key] = result;
-      }
-      callback(err, result);
-    });
-  }, function(err, result) {
-    if(err && err.cancel) return scope.emit('cancel', prompts, scope);
-    if(err && err.timeout) return scope.emit('timeout', prompts, scope);
-    if(err && err.paused) return scope.emit('paused', prompts, scope);
-    if(err) {
-      scope.emit('error', prompts, scope);
-    }
-    var res = {list: result, map: map};
-    scope.emit('complete', res);
-    cb(null, res);
-    if((opts.infinite || scope.options.infinite) && !scope._paused) {
-      return scope.run(prompts, opts, cb);
-    }
-  })
-}
-
-/**
- *  Default implementation for formatting option values.
- */
-Prompt.prototype.option = function(index, value) {
-  return util.format(this.formats.option, index + 1, value);
-}
-
-/**
- *  Select from a list of options.
- *
- *  Display numbers are 1 based.
- */
-Prompt.prototype.select = function(options, cb) {
-  options = options || {};
-  var scope = this, i, s, map = [];
-  var output = options.output || this.output;
-  var list = options.list || [];
-  var validate = options.validate !== undefined
-    ? options.validate : true;
-  var formatter = typeof options.formatter === 'function'
-    ? options.formatter : this.option.bind(this);
-  var prompt = options.prompt || definitions.option.clone();
-  for(i = 0;i < list.length;i++) {
-    s = formatter(i, list[i]);
-    map.push({display: i + 1, index: i, value: list[i]});
-    output.write(s + EOL);
-  }
-  function show() {
-    scope.exec(prompt, function(err, res) {
-      if(err) return cb(err);
-      var int = parseInt(res)
-        , val = !isNaN(int) ? map[--int] : null
-        , invalid = isNaN(int) || !val;
-      if(validate && invalid) {
-        scope.emit('invalid', res, int, options, scope);
-      }
-      if(options.repeat || prompt.repeat && (validate && invalid)) {
-        return show();
-      }
-      if(!invalid) cb(err, val, int, res);
-    });
-  }
-  show();
-}
 
 function prompt(options) {
   return new Prompt(options);

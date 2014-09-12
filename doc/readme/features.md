@@ -12,3 +12,4 @@
 * Confirmation prompts (binary response)
 * Silent prompts (passwords etc)
 * Select option lists.
+* Multiline input.
