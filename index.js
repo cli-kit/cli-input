@@ -229,6 +229,10 @@ Prompt.prototype.getDefaultPrompt = function() {
 }
 
 Prompt.prototype.exec = function(options, cb) {
+  if(typeof options === 'function') {
+    cb = options;
+    options = null;
+  }
   options = options || {};
   options = this.merge(options);
   cb = typeof cb === 'function' ? cb : function noop(){};
