@@ -21,19 +21,15 @@ console.log(delim);
 
 var color = 'cyan';
 
-var colors = {
-  name: function(v) {
-    return ansi(v)[color].valueOf(true)
-  },
-  delimiter: function(v) {
-    return ansi(v).cyan.valueOf(true)
-  },
-  parameters: function(a) {
-    return a.slice(0).map(function(v) {
-      if(!v) return v;
-      return ansi(v)[color].bright.valueOf(true);
-    })
-  }
+var colors = require('./colors');
+colors.name = function(v) {
+  return ansi(v)[color].valueOf(true)
+};
+colors.parameters = function(a) {
+  return a.slice(0).map(function(v) {
+    if(!v) return v;
+    return ansi(v)[color].bright.valueOf(true);
+  })
 }
 
 var type = definitions.question.clone(
