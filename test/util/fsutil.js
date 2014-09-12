@@ -9,6 +9,10 @@ fsutil.file = function(name, content) {
   return file;
 }
 
+fsutil.getWriteStream = function(name) {
+  return fs.createWriteStream(fsutil.file(name));
+}
+
 fsutil.rmfile = function(file) {
   fs.unlinkSync(file);
 }

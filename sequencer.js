@@ -19,18 +19,32 @@ SequenceResult.prototype.write = function(cb) {
   var scope = this;
   var str = this.seq.input;
   var evt = this.item && this.item.type ? this.item.type : 'value';
+
+  // told to listen for a particular event
+  if(this.seq.evt) {
+    evt = this.seq.evt;
+  }
+
   this.ps.on(evt, function(res, options, ps) {
     if(typeof cb === 'function') {
       cb(scope, evt, res, options, ps);
     }
   })
   this.rl.write(str + EOL);
+
+  // duplicate content to output stream so result files
+  // contain data that matches the entire sequence (not just the prompts)
+  if(this.file) {
+    this.file.write(str + EOL);
+  }
 }
 
 var Sequencer = function(options) {
   options = options || {};
   this.ps = options.ps;
   delete options.ps;
+  this.output = options.output;
+  delete options.output;
   assert(this.ps, 'you must specify a prompt instance to create a sequence');
   this.prefix = util.format('%s %s ',
     this.ps.options.name, this.ps.options.delimiter);
@@ -40,6 +54,7 @@ Sequencer.prototype.run = function(sequence, set, cb) {
   var ps = this.ps;
   var input = ps.input;
   var output = ps.output;
+  var file = this.output;
   var prefix = this.prefix;
   var index = 0;
 
@@ -60,6 +75,7 @@ Sequencer.prototype.run = function(sequence, set, cb) {
         sequence: sequence,
         input: input,
         output: output,
+        file: file,
         seq: seq,
         item: set[index],
         set: set,
