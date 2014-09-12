@@ -27,7 +27,6 @@
     "async": "^0.9.0",
     "cli-native": "^1.0.0",
     "cli-util": "^1.1.17",
-    "mute-stream": "0.0.4",
     "touch": "0.0.3"
   },
   "devDependencies": {
