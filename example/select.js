@@ -32,7 +32,7 @@ def.message = 'which language floats your boat (%s)?';
 def.parameters = ['1-' + options.length];
 opts.prompt = def;
 
-ps.select(opts, function(err, res) {
+ps.select(opts, function(err, res, index, line) {
   if(err || !res) return console.error(err);
   console.log('%s, really? cool.', res.value);
   process.exit(res ? 0 : 1);

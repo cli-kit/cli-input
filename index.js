@@ -418,11 +418,11 @@ Prompt.prototype.option = function(index, value) {
  */
 Prompt.prototype.select = function(options, cb) {
   options = options || {};
-  var scope = this, i, s;
+  var scope = this, i, s, map = [];
   var output = options.output || this.output;
   var list = options.list || [];
-  var validate = options.validate !== undefined ? options.validate : true;
-  var map = [];
+  var validate = options.validate !== undefined
+    ? options.validate : true;
   var formatter = typeof options.formatter === 'function'
     ? options.formatter : this.option.bind(this);
   var prompt = options.prompt || definitions.option.clone();
@@ -434,21 +434,16 @@ Prompt.prototype.select = function(options, cb) {
   function show() {
     scope.exec(prompt, function(err, res) {
       if(err) return cb(err);
-      var int = parseInt(res);
-      var val = res;
-      if(isNaN(int)) {
+      var int = parseInt(res)
+        , val = !isNaN(int) ? map[--int] : null
+        , invalid = isNaN(int) || !val;
+      if(validate && invalid) {
         scope.emit('invalid', res, int, options, scope);
-      }else{
-        int--;
-        val = map[int];
-        if(validate && !val) {
-          scope.emit('invalid', res, int, options, scope);
-        }
       }
-      if(options.repeat || prompt.repeat && (!val || isNaN(int))) {
+      if(options.repeat || prompt.repeat && (validate && invalid)) {
         return show();
       }
-      cb(err, val);
+      if(!invalid) cb(err, val, int, res);
     });
   }
   show();
