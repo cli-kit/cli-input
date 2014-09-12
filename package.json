@@ -39,8 +39,31 @@
     "node >= 0.10.21"
   ],
   "scripts": {
+    "readme": "mdp --force -v",
     "pretest": "rm -rfv ./target && mkdir -p ./target",
     "test": "istanbul cover _mocha -- -u bdd --recursive --reporter list -A test/spec/"
   },
-  "config": {}
+  "config": {},
+  "mdp": {
+    "title": "prompt",
+    "pedantic": true,
+    "include": "doc/readme",
+    "require": "lib",
+    "links": "links.md",
+    "toc": "Table of Contents",
+    "base": "https://github.com/freeformsystems/cli-input",
+    "partial": [
+      {
+        "inc": [
+          "introduction.md",
+          "install.md"
+        ]
+      },
+      {
+        "inc": [
+          "developer.md"
+        ]
+      }
+    ]
+  }
 }
