@@ -354,20 +354,26 @@ Prompt.prototype.multiline = function(options, cb, lines) {
     , prompt = options.prompt || {blank: true};
 
   function onkeypress(c, props) {
+    props = props || {};
+
+    // handle exit key
     if(c === key) {
       input.removeListener('keypress', onkeypress);
       if(newline) {
         output.write(EOL);
       }
       if(options.json) {
+        console.log('parse lines %s', lines);
         try {
-          console.dir(lines);
           lines = JSON.parse(lines);
         }catch(e) {
           return cb(e, lines);
         }
       }
       return cb(null, lines);
+    // concatenate character
+    }else if(c && !props.ctrl && !props.meta && !props.shift && !/^\\u/.test(c)) {
+      //console.log(new Buffer(c));
     }
     lines += c;
   }
@@ -375,6 +381,10 @@ Prompt.prototype.multiline = function(options, cb, lines) {
   input.on('keypress', onkeypress);
 
   prompt.expand = false;
+
+  // must re-assign the prompt for recursive calls to respect
+  // our configuration
+  options.prompt = prompt;
 
   scope.exec(prompt, function(err, line) {
     input.removeListener('keypress', onkeypress);
