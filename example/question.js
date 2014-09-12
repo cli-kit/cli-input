@@ -1,6 +1,7 @@
 var prompt = require('..')
   , sets = prompt.sets
   , definitions = sets.definitions;
+
 /**
  *  A simple question/answer prompt that expects an answer
  *  by setting required and repeat options.

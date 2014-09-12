@@ -280,6 +280,7 @@ Prompt.prototype.exec = function(options, cb) {
     //console.log('emitting value %s', cb);
     //
 
+    //console.dir(rl);
     if(options.history === false) {
       //console.log('removing last history item %j', rl.history);
       var last = rl.history.shift();
