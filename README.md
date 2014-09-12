@@ -36,6 +36,7 @@ npm i cli-input --save
 * Confirmation prompts (binary response).
 * Silent prompts (passwords etc).
 * Select option lists.
+* Multiline input.
 
 ## Usage
 
