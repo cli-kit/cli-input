@@ -6,6 +6,12 @@ var name = require('path').basename(process.argv[1]);
 
 /**
  *  An infinite REPL style prompt with command history.
+ *
+ *  Commands are written to `.history` in this directory.
+ *
+ *  Execute the program, run commands, quit and run again
+ *  to view the history loaded from disc and assigned to the
+ *  readline history.
  */
 var file = path.join(__dirname, '.history');
 console.log('%s | send SIGINT (Ctrl^C) to exit', name);
