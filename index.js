@@ -410,11 +410,13 @@ function prompt(options) {
   return new Prompt(options);
 }
 
-var sets = require('./sets');
+var sets = require('./lib/sets');
+var PromptDefinition = require('./lib/definition');
 
 prompt.read = read;
 prompt.errors = read.errors,
 prompt.sets = sets;
+prompt.PromptDefinition = PromptDefinition;
 prompt.history = history;
 prompt.History = history.History;
 module.exports = prompt;

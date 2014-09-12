@@ -4,7 +4,8 @@ var fsutil = require('../util/fsutil');
 var prompt = require('../..')
   , sequencer = require('../../sequencer')
   , fsutil = require('../util/fsutil')
-  , sets = prompt.sets;
+  , sets = prompt.sets
+  , definitions = sets.definitions;
 
 describe('cli-input:', function() {
   this.timeout(5000);
@@ -12,15 +13,17 @@ describe('cli-input:', function() {
 
   it('should use default value on no input', function(done) {
     var output = fsutil.getWriteStream('default-value.txt');
+    var def = definitions.question.clone();
+    def.default = 'default-value';
+    def.parameters = ['default prompt'];
     var sequence = [
       {
-        msg: '? ',
+        msg: 'default prompt? (default-value) ',
         input: '',
         cb: function(res, evt, value, options, ps) {
-          console.dir(value);
-          //expect(res.isPromptEqual()).to.eql(true);
-          //expect(value).to.eql('spicy please');
-          //expect(evt).to.eql('value');
+          expect(res.isPromptEqual()).to.eql(true);
+          expect(value).to.eql(def.default);
+          expect(evt).to.eql('value');
           done();
         }
       }
@@ -28,6 +31,6 @@ describe('cli-input:', function() {
     ps = prompt({name: mock.name, output: output});
     ps.use({colors: false});
     seq = new sequencer({ps: ps, output: output});
-    seq.run(sequence, sets.question);
+    seq.run(sequence, [def]);
   });
 });
