@@ -233,6 +233,7 @@ Prompt.prototype.exec = function(options, cb) {
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
   opts.emitter = this;
+  //console.dir(opts.native);
   this.emit('before', opts, options, scope);
   read(opts, function(err, value, rl) {
     if(err) return cb(err);
@@ -405,7 +406,8 @@ Prompt.prototype.run = function(prompts, opts, cb) {
     var res = {list: result, map: map};
     scope.emit('complete', res);
     cb(null, res);
-    if(opts.infinite && !scope._paused) {
+    //console.dir(opts.infinite);
+    if((opts.infinite || scope.options.infinite) && !scope._paused) {
       return scope.run(prompts, opts, cb);
     }
   })

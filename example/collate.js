@@ -17,7 +17,7 @@ var set = [name, email];
 var ps = prompt();
 ps.run(set, function(err, res) {
   if(err) console.error(err);
-  if(res && res.map && res.map) {
+  if(res && res.map) {
     for(var k in res.map) {
       console.log('%s: %s', k, res.map[k]);
     }
