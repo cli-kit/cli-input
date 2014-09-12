@@ -423,6 +423,7 @@ prompt.sets = sets;
 prompt.PromptDefinition = PromptDefinition;
 prompt.history = history;
 prompt.History = history.History;
+prompt.HistoryFile = history.HistoryFile;
 module.exports = prompt;
 
 
