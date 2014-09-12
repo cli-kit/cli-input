@@ -4,6 +4,7 @@ var path = require('path')
   , file = path.join(target, 'mock-history.txt')
 
 var mock = {
+  name: 'ps-test',
   base: base,
   target: target,
   file: file,

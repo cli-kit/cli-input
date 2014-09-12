@@ -106,6 +106,10 @@ function read (opts, cb) {
     }, timeout)
   }
 
+  if(opts.emitter) {
+    opts.emitter.emit('ready', opts, rl);
+  }
+
   function done (err, line) {
     rl.removeListener('line', onLine);
     rl.removeListener('error', onError);

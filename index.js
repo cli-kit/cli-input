@@ -32,6 +32,13 @@ var Prompt = function(options, rl) {
 
   this.readline = read.open(this.rl);
 
+  // no not store these in the options
+  // to prevent cyclical reference on merge
+  this.input = options.input;
+  this.output = options.output;
+  delete options.input;
+  delete options.output;
+
   // default prompt
   options.prompt = options.prompt || '>';
 
@@ -225,7 +232,8 @@ Prompt.prototype.exec = function(options, cb) {
   var trim = options.trim;
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
-  this.emit('before', options, scope);
+  opts.emitter = this;
+  this.emit('before', opts, options, scope);
   read(opts, function(err, value, rl) {
     if(err) return cb(err);
     //console.log('got read value "%s" (%s)', value, typeof value);
@@ -309,9 +317,12 @@ Prompt.prototype.exec = function(options, cb) {
     }
 
     if(options.type === undefined) {
+
+      // convert to command array for items with no type
       if(typeof val === 'string') {
         val = val.split(/\s+/);
       }
+
       scope.emit('value', val, options, scope);
     }else{
       scope.emit(options.type, val, options, scope);
