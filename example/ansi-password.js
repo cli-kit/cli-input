@@ -1,7 +1,6 @@
 var prompt = require('..')
   , sets = prompt.sets
   , definitions = sets.definitions
-  , ansi = require('ttycolor').ansi
   , colors = require('./colors');
 
 /**
