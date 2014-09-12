@@ -50,4 +50,25 @@ describe('cli-input:', function() {
     seq.run(sequence, sets.confirm);
   });
 
+  it('should show binary confirm prompt (unacceptable)', function(done) {
+    var output = fsutil.getWriteStream('confirm-unacceptable.txt');
+    var sequence = [
+      {
+        msg: 'are you sure? (y/n) ',
+        input: 'ye',
+        evt: 'unacceptable',
+        cb: function(res, evt, value, options, ps) {
+          //expect(res.isPromptEqual()).to.eql(true);
+          //expect(value.result).to.eql('y');
+          //expect(value.accept).to.eql(true);
+          //expect(evt).to.eql('binary');
+          //done();
+        }
+      }
+    ];
+    ps = prompt({name: mock.name, output: output});
+    seq = new sequencer({ps: ps, output: output});
+    seq.run(sequence, sets.confirm);
+  });
+
 });
