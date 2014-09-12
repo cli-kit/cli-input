@@ -405,6 +405,13 @@ Prompt.prototype.run = function(prompts, opts, cb) {
 }
 
 /**
+ *  Default implementation for formatting option values.
+ */
+Prompt.prototype.option = function(index, value) {
+  return util.format(this.formats.option, index + 1, value);
+}
+
+/**
  *  Select from a list of options.
  *
  *  Display numbers are 1 based.
@@ -416,13 +423,14 @@ Prompt.prototype.select = function(options, cb) {
   var list = options.list || [];
   var validate = options.validate !== undefined ? options.validate : true;
   var map = [];
+  var formatter = typeof options.formatter === 'function'
+    ? options.formatter : this.option.bind(this);
   var prompt = options.prompt || definitions.option.clone();
   for(i = 0;i < list.length;i++) {
-    s = util.format(this.formats.option, i + 1, list[i]);
+    s = formatter(i, list[i]);
     map.push({display: i + 1, index: i, value: list[i]});
     output.write(s + EOL);
   }
-
   function show() {
     scope.exec(prompt, function(err, res) {
       if(err) return cb(err);
