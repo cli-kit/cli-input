@@ -2,24 +2,23 @@ var events = require('events')
   , util = require('util')
   , path = require('path')
   , async = require('async')
-  , read = require('./lib/read')
-  , history = require('./lib/history')
   , utils = require('cli-util')
   , merge = utils.merge
-  , native = require('cli-native');
-
-var paused = new Error('paused');
-paused.paused = true;
-
-var types = {
-  binary: 'binary',
-  password: 'password'
-}
+  , native = require('cli-native')
+  , read = require('./lib/read')
+  , history = require('./lib/history')
+  , sets = require('./lib/sets')
+  , PromptDefinition = require('./lib/definition');
 
 var schema;
 try{
   schema = require('async-validate');
 }catch(e){}
+
+var types = {
+  binary: 'binary',
+  password: 'password'
+}
 
 var Prompt = function(options, rl) {
   options = options || {};
@@ -38,6 +37,13 @@ var Prompt = function(options, rl) {
   this.output = options.output;
   delete options.input;
   delete options.output;
+
+  this.formats = options.formats || {};
+  this.formats.default = this.formats.default || '(%s) ';
+
+  this.name = options.name || path.basename(process.argv[1]);
+  this.fmt = options.format ||
+    ':name :delimiter :location :status :message :default';
 
   // default prompt
   options.prompt = options.prompt || '>';
@@ -74,13 +80,6 @@ var Prompt = function(options, rl) {
     delete options.history;
   }
 
-  this.formats = options.formats || {};
-  this.formats.default = this.formats.default || '(%s) ';
-
-  this.name = options.name || path.basename(process.argv[1]);
-  this.fmt = options.format ||
-    ':name :delimiter :location :status :message :default';
-
   this.keys = this.fmt.split(' ').map(function(value) {
     return value.replace(/^:/, '');
   })
@@ -108,7 +107,6 @@ Prompt.prototype.transform = function(k, v, options) {
 Prompt.prototype.replace = function(format, source, options) {
   var s = '' + format, k, v;
   var items = {}, keys = this.keys;
-
   function clean(s) {
     // strip extraneous keys
     for(var i = 0;i < keys.length;i++) {
@@ -233,17 +231,11 @@ Prompt.prototype.exec = function(options, cb) {
   for(k in options) opts[k] = options[k];
   opts.rl = this.rl;
   opts.emitter = this;
-  //console.dir(opts.native);
   this.emit('before', opts, options, scope);
   read(opts, function(err, value, rl) {
     if(err) return cb(err);
     //console.log('got read value "%s" (%s)', value, typeof value);
     var val = (value || '').trim();
-
-    //console.dir(options);
-    //console.log('required %s', options.required);
-    //console.log('repeat %s', options.repeat);
-    //console.log('val "%s"', val);
 
     if(!val) {
       scope.emit('empty', options, scope);
@@ -253,12 +245,6 @@ Prompt.prototype.exec = function(options, cb) {
     if(!val && options.required && options.repeat) {
       return scope.exec(options, cb);
     }
-
-
-    //if(options.type === types.password
-      //&& options.equal && options.pass1 && !options.pass2) {
-      //return scope.exec(options, cb);
-    //}
 
     if(options.native && val) {
       val =
@@ -279,12 +265,9 @@ Prompt.prototype.exec = function(options, cb) {
 
     //console.log('emitting value %j', options.key);
     //console.log('emitting value %s', cb);
-    //
 
-    //console.dir(rl);
     if(options.history === false) {
-      //console.log('removing last history item %j', rl.history);
-      var last = rl.history.shift();
+      rl.history.shift();
     }
 
     if(options.type === types.binary) {
@@ -323,12 +306,10 @@ Prompt.prototype.exec = function(options, cb) {
     }
 
     if(options.type === undefined) {
-
       // convert to command array for items with no type
       if(typeof val === 'string' && options.expand !== false) {
         val = val.split(/\s+/);
       }
-
       scope.emit('value', val, options, scope);
     }else{
       scope.emit(options.type, val, options, scope);
@@ -406,7 +387,6 @@ Prompt.prototype.run = function(prompts, opts, cb) {
     var res = {list: result, map: map};
     scope.emit('complete', res);
     cb(null, res);
-    //console.dir(opts.infinite);
     if((opts.infinite || scope.options.infinite) && !scope._paused) {
       return scope.run(prompts, opts, cb);
     }
@@ -417,9 +397,6 @@ function prompt(options) {
   return new Prompt(options);
 }
 
-var sets = require('./lib/sets');
-var PromptDefinition = require('./lib/definition');
-
 prompt.read = read;
 prompt.errors = read.errors,
 prompt.sets = sets;
@@ -428,29 +405,6 @@ prompt.history = history;
 prompt.History = history.History;
 prompt.HistoryFile = history.HistoryFile;
 module.exports = prompt;
-
-
-//var p = prompt({infinite: true});
-//p.on('value', function(val, options) {
-  ////console.dir(val);
-  //console.dir(options);
-  //if(val === 'passwd') {
-    //p.pause();
-    //p.run([sets.password[0]], function(err, result) {
-      //p.resume();
-    //})
-  //}
-//})
-//p.run(null, function(er, result) {
-  ////console.dir(result);
-  ////process.exit();
-//});
-//
-//var p = prompt({repeat: true});
-//p.run(sets.userpass, function(er, result) {
-  //console.dir(result);
-  //process.exit();
-//});
 
 //var h = history({file: process.env.HOME + '/.rlx/.history', exit: true},
   //function(err, store, hs) {
@@ -490,19 +444,3 @@ module.exports = prompt;
   //console.dir(result);
   //process.exit();
 //});
-/*
-p.on('before', function(options, ps) {
-})
-p.on('value', function(value, options, ps) {
-  console.log('value: \'%s\' (%s)', value, typeof value);
-})
-p.on('complete', function(options, ps) {
-})
-p.on('error', function(err) {
-  if(!err.cancel) console.error('error: ' + err.message);
-})
-p.run(sets.userpass, function(err, result) {
-  //if(err && !err.cancel) console.error('error: ' + err.message);
-  //console.dir(result);
-});
-*/
