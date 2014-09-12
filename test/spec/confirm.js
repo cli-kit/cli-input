@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var mock = require('../util/mock');
 var fsutil = require('../util/fsutil');
 var prompt = require('../..')
-  , sequencer = require('../../sequencer')
+  , sequencer = require('../../lib/sequencer')
   , fsutil = require('../util/fsutil')
   , sets = prompt.sets;
 
