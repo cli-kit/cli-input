@@ -3,8 +3,8 @@ Table of Contents
 
 * [Prompt](#prompt)
   * [Install](#install)
+  * [Examples](#examples)
   * [Developer](#developer)
-  * [Developer](#developer-1)
     * [Test](#test)
 
 Prompt
@@ -18,7 +18,7 @@ Prompt and user input library, a component of the cli [toolkit](https://github.c
 npm i cli-input --save
 ```
 
-## Developer
+## Examples
 
 Examples are in the [example](https://github.com/freeformsystems/cli-input/blob/master/example) directory, execute an example with:
 

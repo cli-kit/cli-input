@@ -1,4 +1,4 @@
-## Developer
+## Examples
 
 Examples are in the [example](/example) directory, execute an example with:
 
