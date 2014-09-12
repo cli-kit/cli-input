@@ -1,1 +1,1 @@
-Prompt and user input library, a component of the cli [toolkit][].
+Prompt and user input library, a component of the [toolkit][].

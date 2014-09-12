@@ -4,8 +4,13 @@ Table of Contents
 * [Prompt](#prompt)
   * [Install](#install)
   * [Features](#features)
+  * [Documentation](#documentation)
   * [Usage](#usage)
     * [Options](#options)
+    * [prompt(options, cb)](#promptoptions-cb)
+    * [run(prompts, cb)](#runprompts-cb)
+    * [select(options, cb)](#selectoptions-cb)
+    * [multiline(options, cb)](#multilineoptions-cb)
   * [Examples](#examples)
   * [Developer](#developer)
     * [Test](#test)
@@ -14,7 +19,7 @@ Table of Contents
 Prompt
 ======
 
-Prompt and user input library, a component of the cli [toolkit](https://github.com/freeformsystems/cli-toolkit).
+Prompt and user input library, a component of the [toolkit](https://github.com/freeformsystems/cli-toolkit).
 
 ## Install
 
@@ -37,6 +42,10 @@ npm i cli-input --save
 * Silent prompts (passwords etc).
 * Select option lists.
 * Multiline input.
+
+## Documentation
+
+See the [examples](https://github.com/freeformsystems/cli-input/blob/master/example), [test specifications](https://github.com/freeformsystems/cli-input/blob/master/test/spec) have a poke around the source and see below.
 
 ## Usage
 
@@ -66,6 +75,22 @@ The `Prompt` class accepts the following options at instantiation:
 * `delimiter`: Default value for the `:delimiter` format property, default is `⚡`.
 * `name`: Default value for the `:name` format property, default is `path.basename(process.argv[1])`.
 * `format`: Prompt format string specification, default is `:name :delimiter :location :status :message :default`.
+
+### prompt(options, cb)
+
+Show a single prompt.
+
+### run(prompts, cb)
+
+Run an array of prompt definitions and invoke callback with the result. The result contains a `map` property which maps the definitions `key` to the input value.
+
+### select(options, cb)
+
+Display select menu output followed by a prompt.
+
+### multiline(options, cb)
+
+Capture multiline input.
 
 ## Examples
 
