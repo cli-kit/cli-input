@@ -12,6 +12,6 @@ ps.multiline(opts, function onlines(err, data) {
     console.error('%s ! %s', name, err.message);
     return ps.multiline(opts, onlines);
   }
-  console.log('%s | %j', name, data);
+  console.log('%s | %j (%s)', name, data, typeof data);
   process.exit(0);
 });

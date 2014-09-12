@@ -338,15 +338,17 @@ Prompt.prototype.select = function(options, cb) {
 /**
  *  Collect multiline into a string.
  */
-Prompt.prototype.multiline = function(options, cb, lines) {
+Prompt.prototype.multiline = function(options, cb, lines, raw) {
   if(typeof options === 'function') {
     cb = options;
     options = null;
   }
   options = options || {};
-  lines = lines || '';
+  lines = lines || [];
+  raw = raw || '';
 
   var scope = this
+    , line = ''
     , input = this.input
     , output = this.output
     , key = options.key || '\u0004'
@@ -355,27 +357,28 @@ Prompt.prototype.multiline = function(options, cb, lines) {
 
   function onkeypress(c, props) {
     props = props || {};
-
     // handle exit key
     if(c === key) {
       input.removeListener('keypress', onkeypress);
       if(newline) {
         output.write(EOL);
       }
+      if(!lines.length) {
+        lines = [line];
+      }
       if(options.json) {
-        console.log('parse lines %s', lines);
         try {
-          lines = JSON.parse(lines);
+          lines = JSON.parse(lines.join(EOL));
         }catch(e) {
-          return cb(e, lines);
+          return cb(e, lines, raw || line);
         }
       }
-      return cb(null, lines);
-    // concatenate character
-    }else if(c && !props.ctrl && !props.meta && !props.shift && !/^\\u/.test(c)) {
-      //console.log(new Buffer(c));
+      return cb(null, lines, raw || line);
     }
-    lines += c;
+    if(c) {
+      line += c;
+      raw += c;
+    }
   }
 
   input.on('keypress', onkeypress);
@@ -386,11 +389,12 @@ Prompt.prototype.multiline = function(options, cb, lines) {
   // our configuration
   options.prompt = prompt;
 
-  scope.exec(prompt, function(err, line) {
+  scope.exec(prompt, function online(err, val) {
     input.removeListener('keypress', onkeypress);
     if(err) return cb(err);
-    lines += EOL;
-    scope.multiline(options, cb, lines);
+    raw += val + EOL;
+    lines.push(val);
+    scope.multiline(options, cb, lines, raw);
   });
 }
 
