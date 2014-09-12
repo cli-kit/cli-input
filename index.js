@@ -244,6 +244,10 @@ Prompt.prototype.exec = function(options, cb) {
     //console.log('repeat %s', options.repeat);
     //console.log('val "%s"', val);
 
+    if(!val) {
+      scope.emit('empty', options, scope);
+    }
+
     // required and repeat, prompt until we get a value
     if(!val && options.required && options.repeat) {
       return scope.exec(options, cb);
