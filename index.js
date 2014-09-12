@@ -55,7 +55,7 @@ var Prompt = function(options, rl) {
   // default prompt
   options.prompt = options.prompt || '>';
 
-  // default replacment character for silent
+  // default replacement character for silent
   options.replace = options.replace || '*';
 
   // determine if a prompt should be re-displayed at the end of a run
@@ -77,11 +77,13 @@ var Prompt = function(options, rl) {
   // split values into array
   options.split = options.split !== undefined ? options.split : null;
 
+  // delimiter that comes after the name
   options.delimiter = options.delimiter || '⚡';
 
   // color callback functions
   options.colors = options.colors || {};
 
+  // history has cyclical references
   if(options.history) {
     this.history = options.history;
     delete options.history;
@@ -92,7 +94,6 @@ var Prompt = function(options, rl) {
   })
 
   this.options = options;
-
   this._use = {};
 }
 
