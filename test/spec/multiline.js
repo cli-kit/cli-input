@@ -30,7 +30,7 @@ describe('cli-input:', function() {
     });
   });
 
-  it('should capture multiline input', function(done) {
+  it('should capture multiline input without trailing newline', function(done) {
     var output = fsutil.getWriteStream('multiline.txt');
     var input = 'lorem\nipsum\ndolor';
     var expected = {

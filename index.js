@@ -400,14 +400,15 @@ Prompt.prototype.select = function(options, cb) {
 /**
  *  Collect multiline into a string.
  */
-Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
+Prompt.prototype.multiline = function(options, cb, lines, vpos) {
   if(typeof options === 'function') {
     cb = options;
     options = null;
   }
   options = options || {};
   lines = lines || [];
-  raw = raw || '';
+  //raw = raw || '';
+  var raw;
 
   //console.log('ml method called');
 
@@ -435,29 +436,30 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
         output.write(EOL);
       }
 
-      if(!lines.length) {
-        lines = [line];
+      // handle trailing lines with no newline
+      if(line !== undefined && !~line.indexOf(EOL)) {
+        lines.push(line);
       }
 
-      // handle trailing lines with no newline
-      if(line && !~line.indexOf(EOL)) {
-        if(lines.length > 1) lines.push(line);
-        raw += line;
-      }
+      raw = lines.join(EOL);
 
       // restore history
       readline.history = history;
+
+      //console.log('final lines');
+      //console.dir(lines);
+      //console.dir(raw);
 
       // parse as JSON
       if(options.json) {
         try {
           lines = JSON.parse(raw);
         }catch(e) {
-          return cb(e, lines, raw || line);
+          return cb(e, lines, raw);
         }
       }
 
-      return cb(null, lines, raw || line);
+      return cb(null, lines, raw);
     }
   }
 
@@ -474,7 +476,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
 
   var delLeft = readline._deleteLeft;
   readline._deleteLeft = function() {
-    var ln = lines[lines.length - 1];
+    var ln = lines[vpos];
     // empty first line but have subsequent lines
     // bring them up
     //if(!readline.line && !vpos && line.length > 1) {
@@ -493,10 +495,11 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
       readline.cursor = ln.length;
       readline._refreshLine();
       return lines.pop();
-    }else if(vpos < lines.length) {
+    }else if(vpos < lines.length && vpos >= 0) {
       // here we are not on the last line
       // adn the default implementation would
       // clearScreenDown() which removes subsequent lines
+      //console.dir(ln);
 
       var ln = readline.line;
       var pos = readline.cursor;
@@ -504,16 +507,19 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
       var end = ln.substr(pos);
       ln = beg + end;
       //ln = ln.substr(0, ln.length - 1);
+      //
+      //console.dir(lines[vpos]);
 
       //console.log('delete on previous line');
       rl.clearLine(readline.output, 0);
 
+      //console.dir(ln);
       readline.line = ln;
+      lines[vpos] = ln;
 
       rl.cursorTo(readline.input, 0);
       readline.output.write(ln);
-      readline.cursor--;
-      //readline._refreshLine();
+      readline.cursor = pos - 1;
     }else{
       delLeft.call(readline);
     }
@@ -562,9 +568,8 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   scope.exec(prompt, function online(err, val) {
     input.removeListener('keypress', onkeypress);
     if(err) return cb(err);
-    raw += (val || '') + EOL;
     lines.push(val);
-    scope.multiline(options, cb, lines, raw, ++vpos);
+    scope.multiline(options, cb, lines, ++vpos);
   });
 }
 
