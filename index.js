@@ -444,6 +444,17 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
 }
 
 /**
+ *  Validate against a schema.
+ */
+Prompt.prototype.validate = function(source, descriptor, cb) {
+  if(!schema) return cb();
+  var validator = new schema(descriptor);
+  validator.validate(source, function(errors, fields) {
+    cb(errors, fields);
+  });
+}
+
+/**
  *  @private
  */
 Prompt.prototype.exec = function(options, cb) {
@@ -548,12 +559,12 @@ Prompt.prototype.exec = function(options, cb) {
       scope.emit(options.type, val, options, scope);
     }
 
+    // validate  on a schema assigned to the prompt
     if(schema && options.schema && options.key) {
       var source = {}, descriptor = {}
       source[options.key] = value;
       descriptor[options.key] = options.schema;
-      var validator = new schema(descriptor);
-      validator.validate(source, function(errors, fields) {
+      scope.validate(source, descriptor, function(errors, fields) {
         if(errors && errors.length) {
           if(options.repeat) {
             scope.emit('error', errors[0], options, cb);
