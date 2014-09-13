@@ -413,6 +413,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
 
   var scope = this
     , readline = this.readline
+    , rl = require('readline')
     , line = ''
     , input = this.input
     , output = this.output
@@ -426,6 +427,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
 
   function onkeypress(c, props) {
     props = props || {};
+
     // handle exit key
     if(c === key) {
       input.removeListener('keypress', onkeypress);
@@ -466,8 +468,23 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   // to insert the current character
   var insert = readline._insertString;
   readline._insertString = function(c) {
-    insert.call(scope.readline, c);
-    line = scope.readline.line;
+    insert.call(readline, c);
+    line = readline.line;
+  }
+
+  var delLeft = readline._deleteLeft;
+  readline._deleteLeft = function() {
+    var ln = lines[lines.length - 1];
+    // backspace at beginning of line
+    if(!readline.line && vpos && ln) {
+      //console.log('moving up %s', readline.line);
+      --vpos;
+      readline.line = ln;
+      rl.moveCursor(readline.input, ln.length, -1);
+      readline.cursor = ln.length;
+      return lines.pop();
+    }
+    delLeft.call(readline);
   }
 
   // support navigating up/down with cursor keys
@@ -475,7 +492,6 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   var next = readline._historyNext;
   readline._historyPrev = function() {
     if(vpos === 0) return;
-    var rl = require('readline');
     rl.moveCursor(readline.input, 0, -1);
     vpos--;
   }
@@ -483,7 +499,6 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   readline._historyNext = function() {
     //console.dir(lines.length);
     if(!lines.length || vpos >= lines.length) return;
-    var rl = require('readline');
     rl.moveCursor(readline.input, 0, 1);
     vpos++;
   }
