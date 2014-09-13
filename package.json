@@ -29,7 +29,7 @@
   "dependencies": {
     "async": "^0.9.0",
     "cli-native": "^1.0.0",
-    "cli-util": "^1.1.17",
+    "cli-util": "^1.1.18",
     "touch": "0.0.3"
   },
   "devDependencies": {
