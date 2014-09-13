@@ -439,8 +439,8 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
       }
 
       // handle trailing lines with no newline
-      if(line && !~line.indexOf(EOL) && lines.length > 1) {
-        lines.push(line);
+      if(line && !~line.indexOf(EOL)) {
+        if(lines.length > 1) lines.push(line);
         raw += line;
       }
 
