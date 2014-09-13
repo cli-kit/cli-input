@@ -18,9 +18,11 @@ describe('cli-input:', function() {
         msg: '',
         input: 'pwd',
         cb: function(res, evt, value, options, ps) {
+          ps.pause();
           expect(value).to.be.an('array');
           expect(value.length).to.eql(1);
           expect(value).to.eql(['pwd']);
+          ps.resume();
         }
       },
       {
