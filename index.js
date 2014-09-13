@@ -474,15 +474,21 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
   var delLeft = readline._deleteLeft;
   readline._deleteLeft = function() {
     var ln = lines[vpos];
+
+    //console.dir(ln);
+
     // backspace at beginning of line
-    if(!readline.line && vpos && ln !== undefined) {
-      //cosnole.log('popping line');
-      --vpos;
-      readline.line = ln;
-      rl.moveCursor(readline.input, ln.length, -1);
-      readline.cursor = ln.length;
-      readline._refreshLine();
-      return lines.pop();
+    if(!readline.line && vpos && !ln) {
+      if(ln === undefined) ln = lines[vpos-1];
+      //console.log('popping line');
+      if(ln !== undefined) {
+        --vpos;
+        readline.line = ln;
+        rl.moveCursor(readline.input, ln.length, -1);
+        readline.cursor = ln.length;
+        readline._refreshLine();
+        return lines.pop();
+      }
     }else if(vpos < lines.length && vpos >= 0) {
       // here we are not on the last line
       // and the default implementation would
@@ -527,15 +533,17 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
     if(!lines.length || vpos >= lines.length) return;
     var cl = readline.line;
     var nl = lines[++vpos] || line || '';
-    var x = (nl.length - cl.length);
+    var x = 0, pos = readline.cursor;
     if(nl.length < cl.length) {
       //console.log('newline is less');
-      x = -x;
+      x = -(pos - (cl.length - nl.length));
     }
+    //console.dir(x);
     rl.moveCursor(readline.input, 0, 1);
     readline.line = nl;
-    var dx = readline.cursor + (nl.length - cl.length);
-    readline._moveCursor(dx);
+    //console.dir(x);
+    //var dx = readline.cursor + x;
+    readline._moveCursor(x);
   }
 
   input.on('keypress', onkeypress);
