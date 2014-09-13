@@ -409,6 +409,8 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
   lines = lines || [];
   raw = raw || '';
 
+  //console.log('ml method called');
+
   var scope = this
     , line = ''
     , input = this.input
@@ -435,11 +437,20 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
           return cb(e, lines, raw || line);
         }
       }
+
+      // handle trailing lines with no newline
+      if(line && !~line.indexOf(EOL) && lines.length > 1) {
+        lines.push(line);
+        raw += line;
+      }
+
+      //console.dir(raw);
+
       return cb(null, lines, raw || line);
     }
     if(c) {
       line += c;
-      raw += c;
+      //raw += c;
     }
   }
 
@@ -454,7 +465,9 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
   scope.exec(prompt, function online(err, val) {
     input.removeListener('keypress', onkeypress);
     if(err) return cb(err);
-    raw += val + EOL;
+    //console.log('write line value "%s"', val);
+    raw += (val || '') + EOL;
+    //console.log('raw after %s', raw);
     lines.push(val);
     scope.multiline(options, cb, lines, raw);
   });
