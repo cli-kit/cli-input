@@ -7,10 +7,11 @@ Table of Contents
   * [Documentation](#documentation)
   * [Usage](#usage)
     * [Options](#options)
-    * [prompt(options, cb)](#promptoptions-cb)
-    * [run(prompts, cb)](#runprompts-cb)
-    * [select(options, cb)](#selectoptions-cb)
-    * [multiline(options, cb)](#multilineoptions-cb)
+    * [Prompt](#prompt-1)
+      * [prompt(options, cb)](#promptoptions-cb)
+      * [run(prompts, cb)](#runprompts-cb)
+      * [select(options, cb)](#selectoptions-cb)
+      * [multiline(options, cb)](#multilineoptions-cb)
   * [Examples](#examples)
   * [Developer](#developer)
     * [Test](#test)
@@ -76,21 +77,25 @@ The `Prompt` class accepts the following options at instantiation:
 * `name`: Default value for the `:name` format property, default is `path.basename(process.argv[1])`.
 * `format`: Prompt format string specification, default is `:name :delimiter :location :status :message :default`.
 
-### prompt(options, cb)
+### Prompt
+
+#### prompt(options, cb)
 
 Show a single prompt.
 
-### run(prompts, cb)
+#### run(prompts, cb)
 
 Run an array of prompt definitions and invoke callback with the result. The result contains a `map` property which maps the definitions `key` to the input value.
 
-### select(options, cb)
+#### select(options, cb)
 
 Display select menu output followed by a prompt.
 
-### multiline(options, cb)
+#### multiline(options, cb)
 
 Capture multiline input.
+
+***Note this overrides several internal readline module methods, use with discretion***.
 
 ## Examples
 

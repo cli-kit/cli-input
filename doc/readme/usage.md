@@ -44,3 +44,5 @@ Display select menu output followed by a prompt.
 #### multiline(options, cb)
 
 Capture multiline input.
+
+***Note this overrides several internal readline module methods, use with discretion***
