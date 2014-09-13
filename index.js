@@ -407,10 +407,7 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
   }
   options = options || {};
   lines = lines || [];
-  //raw = raw || '';
   var raw;
-
-  //console.log('ml method called');
 
   var scope = this
     , readline = this.readline
@@ -477,15 +474,6 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
   var delLeft = readline._deleteLeft;
   readline._deleteLeft = function() {
     var ln = lines[vpos];
-    // empty first line but have subsequent lines
-    // bring them up
-    //if(!readline.line && !vpos && line.length > 1) {
-      //var nl = lines.pop();
-      //console.log('bring lower line up');
-      //rl.clearScreenDown(readline.output);
-    //
-    //console.dir(ln);
-
     // backspace at beginning of line
     if(!readline.line && vpos && ln !== undefined) {
       //cosnole.log('popping line');
@@ -497,23 +485,16 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
       return lines.pop();
     }else if(vpos < lines.length && vpos >= 0) {
       // here we are not on the last line
-      // adn the default implementation would
+      // and the default implementation would
       // clearScreenDown() which removes subsequent lines
-      //console.dir(ln);
 
-      var ln = readline.line;
+      ln = readline.line;
       var pos = readline.cursor;
       var beg = ln.substr(0, pos - 1);
       var end = ln.substr(pos);
       ln = beg + end;
-      //ln = ln.substr(0, ln.length - 1);
-      //
-      //console.dir(lines[vpos]);
 
-      //console.log('delete on previous line');
       rl.clearLine(readline.output, 0);
-
-      //console.dir(ln);
       readline.line = ln;
       lines[vpos] = ln;
 
