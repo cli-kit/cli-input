@@ -10,7 +10,7 @@ var opts = {json: true};
 ps.multiline(opts, function onlines(err, data) {
   if(err) {
     console.error('%s ! %s', name, err.message);
-    return ps.multiline(opts, onlines);
+    process.exit(1);
   }
   console.log('%s | %j (%s)', name, data, typeof data);
   process.exit(0);

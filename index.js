@@ -400,7 +400,7 @@ Prompt.prototype.select = function(options, cb) {
 /**
  *  Collect multiline into a string.
  */
-Prompt.prototype.multiline = function(options, cb, lines, raw) {
+Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   if(typeof options === 'function') {
     cb = options;
     options = null;
@@ -412,6 +412,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
   //console.log('ml method called');
 
   var scope = this
+    , readline = this.readline
     , line = ''
     , input = this.input
     , output = this.output
@@ -419,8 +420,9 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
     , newline = options.newline !== undefined ? options.newline : true
     , prompt = options.prompt || {blank: true};
 
-  var history = scope.readline.history;
-  scope.readline.history = [];
+  // disable history for multiline
+  var history = readline.history;
+  readline.history = [];
 
   function onkeypress(c, props) {
     props = props || {};
@@ -441,8 +443,10 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
         raw += line;
       }
 
-      scope.readline.history = history;
+      // restore history
+      readline.history = history;
 
+      // parse as JSON
       if(options.json) {
         try {
           lines = JSON.parse(raw);
@@ -455,13 +459,33 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
     }
   }
 
+  vpos = vpos || 0;
+
   // this is a hack and uses the readline internals
   // but saves us duplicating all the logic for *where*
   // to insert the current character
-  var insert = scope.readline._insertString;
-  scope.readline._insertString = function(c) {
+  var insert = readline._insertString;
+  readline._insertString = function(c) {
     insert.call(scope.readline, c);
     line = scope.readline.line;
+  }
+
+  // support navigating up/down with cursor keys
+  var previous = readline._historyPrev;
+  var next = readline._historyNext;
+  readline._historyPrev = function() {
+    if(vpos === 0) return;
+    var rl = require('readline');
+    rl.moveCursor(readline.input, 0, -1);
+    vpos--;
+  }
+
+  readline._historyNext = function() {
+    //console.dir(lines.length);
+    if(!lines.length || vpos >= lines.length) return;
+    var rl = require('readline');
+    rl.moveCursor(readline.input, 0, 1);
+    vpos++;
   }
 
   input.on('keypress', onkeypress);
@@ -477,7 +501,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
     if(err) return cb(err);
     raw += (val || '') + EOL;
     lines.push(val);
-    scope.multiline(options, cb, lines, raw);
+    scope.multiline(options, cb, lines, raw, ++vpos);
   });
 }
 
