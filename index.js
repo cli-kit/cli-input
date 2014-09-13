@@ -427,15 +427,9 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
       if(newline) {
         output.write(EOL);
       }
+
       if(!lines.length) {
         lines = [line];
-      }
-      if(options.json) {
-        try {
-          lines = JSON.parse(lines.join(EOL));
-        }catch(e) {
-          return cb(e, lines, raw || line);
-        }
       }
 
       // handle trailing lines with no newline
@@ -444,14 +438,32 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
         raw += line;
       }
 
-      //console.dir(raw);
+      //if(!raw && line) {
+        //raw = line;
+      //}
+
+      if(options.json) {
+        try {
+          lines = JSON.parse(raw);
+        }catch(e) {
+          return cb(e, lines, raw || line);
+        }
+      }
+
+      //console.log('raw %s', raw);
+      //console.log('lines %s', lines);
 
       return cb(null, lines, raw || line);
     }
-    if(c) {
-      line += c;
-      //raw += c;
-    }
+  }
+
+  // this is a hack and uses the readline internals
+  // but saves us duplicating all the logic for *where*
+  // to insert the current character
+  var insert = scope.readline._insertString;
+  scope.readline._insertString = function(c) {
+    insert.call(scope.readline, c);
+    line = scope.readline.line;
   }
 
   input.on('keypress', onkeypress);
