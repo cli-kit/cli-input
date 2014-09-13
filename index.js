@@ -475,17 +475,48 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   var delLeft = readline._deleteLeft;
   readline._deleteLeft = function() {
     var ln = lines[lines.length - 1];
+    // empty first line but have subsequent lines
+    // bring them up
+    //if(!readline.line && !vpos && line.length > 1) {
+      //var nl = lines.pop();
+      //console.log('bring lower line up');
+      //rl.clearScreenDown(readline.output);
+    //
+    //console.dir(ln);
+
     // backspace at beginning of line
-    if(!readline.line && vpos && ln) {
-      //console.log('moving up %s', readline.line);
+    if(!readline.line && vpos && ln !== undefined) {
+      //cosnole.log('popping line');
       --vpos;
       readline.line = ln;
       rl.moveCursor(readline.input, ln.length, -1);
       readline.cursor = ln.length;
       readline._refreshLine();
       return lines.pop();
+    }else if(vpos < lines.length) {
+      // here we are not on the last line
+      // adn the default implementation would
+      // clearScreenDown() which removes subsequent lines
+
+      var ln = readline.line;
+      var pos = readline.cursor;
+      var beg = ln.substr(0, pos - 1);
+      var end = ln.substr(pos);
+      ln = beg + end;
+      //ln = ln.substr(0, ln.length - 1);
+
+      //console.log('delete on previous line');
+      rl.clearLine(readline.output, 0);
+
+      readline.line = ln;
+
+      rl.cursorTo(readline.input, 0);
+      readline.output.write(ln);
+      readline.cursor--;
+      //readline._refreshLine();
+    }else{
+      delLeft.call(readline);
     }
-    delLeft.call(readline);
   }
 
   // support navigating up/down with cursor keys
@@ -499,23 +530,25 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
     if(nl.length < cl.length) {
       x = -(cl.length - nl.length);
     }
-    rl.moveCursor(readline.input, x, -1);
+    rl.moveCursor(readline.input, 0, -1);
     readline.line = nl;
-    //readline._moveCursor(x);
+    var dx = readline.cursor + (nl.length - cl.length);
+    readline._moveCursor(dx);
   }
 
   readline._historyNext = function() {
     if(!lines.length || vpos >= lines.length) return;
     var cl = readline.line;
     var nl = lines[++vpos] || line || '';
-    var x = 0;
-    if(nl.length > cl.length) {
-      x = (nl.length - cl.length);
+    var x = (nl.length - cl.length);
+    if(nl.length < cl.length) {
+      //console.log('newline is less');
+      x = -x;
     }
-    rl.moveCursor(readline.input, x, 1);
+    rl.moveCursor(readline.input, 0, 1);
     readline.line = nl;
-    //readline._refreshLine();
-    //readline._moveCursor(0);
+    var dx = readline.cursor + (nl.length - cl.length);
+    readline._moveCursor(dx);
   }
 
   input.on('keypress', onkeypress);
