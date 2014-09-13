@@ -52,6 +52,9 @@ var Prompt = function(options, rl) {
   this.fmt = options.format ||
     ':name :delimiter :location :status :message :default';
 
+  options.validator = options.validator !== undefined
+    ? options.validator : {};
+
   // default prompt
   options.prompt = options.prompt || '>';
 
@@ -278,10 +281,24 @@ Prompt.prototype.run = function(prompts, opts, cb) {
       scope.emit('error', prompts, scope);
     }
     var res = {list: result, map: map};
-    scope.emit('complete', res);
-    cb(null, res);
-    if((opts.infinite || scope.options.infinite) && !scope._paused) {
-      return scope.run(prompts, opts, cb);
+
+    function done() {
+      scope.emit('complete', res);
+      cb(null, res);
+      if((opts.infinite || scope.options.infinite) && !scope._paused) {
+        return scope.run(prompts, opts, cb);
+      }
+    }
+
+    if(opts.schema && res && res.map) {
+      scope.validate(res.map, opts.schema, function(errors, fields) {
+        if(errors && errors.length) {
+          return scope.emit('error', errors[0], errors, fields, res, scope);
+        }
+        done();
+      })
+    }else{
+      done();
     }
   })
 }
@@ -449,9 +466,11 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
 Prompt.prototype.validate = function(source, descriptor, cb) {
   if(!schema) return cb();
   var validator = new schema(descriptor);
-  validator.validate(source, function(errors, fields) {
-    cb(errors, fields);
-  });
+  validator.validate(source, this.options.validator,
+    function onvalidate(errors, fields) {
+      cb(errors, fields);
+    }
+  );
 }
 
 /**
