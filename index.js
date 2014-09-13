@@ -419,6 +419,9 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
     , newline = options.newline !== undefined ? options.newline : true
     , prompt = options.prompt || {blank: true};
 
+  var history = scope.readline.history;
+  scope.readline.history = [];
+
   function onkeypress(c, props) {
     props = props || {};
     // handle exit key
@@ -438,9 +441,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
         raw += line;
       }
 
-      //if(!raw && line) {
-        //raw = line;
-      //}
+      scope.readline.history = history;
 
       if(options.json) {
         try {
@@ -449,9 +450,6 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
           return cb(e, lines, raw || line);
         }
       }
-
-      //console.log('raw %s', raw);
-      //console.log('lines %s', lines);
 
       return cb(null, lines, raw || line);
     }
@@ -477,9 +475,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw) {
   scope.exec(prompt, function online(err, val) {
     input.removeListener('keypress', onkeypress);
     if(err) return cb(err);
-    //console.log('write line value "%s"', val);
     raw += (val || '') + EOL;
-    //console.log('raw after %s', raw);
     lines.push(val);
     scope.multiline(options, cb, lines, raw);
   });
