@@ -288,9 +288,18 @@ Prompt.prototype.run = function(prompts, opts, cb) {
 
 /**
  *  Default implementation for formatting option values.
+ *
+ *  @param index The index into the options list.
+ *  @param value The value for the option.
+ *  @param default A default value for the list.
  */
-Prompt.prototype.option = function(index, value) {
-  return util.format(this.formats.option, index + 1, value);
+Prompt.prototype.option = function(index, value, def) {
+  if(!def || def !== value) {
+    return util.format(this.formats.option, index + 1, value);
+  }else if(def === value){
+    return util.format(this.formats.option, index + 1, value)
+    + ' ' + util.format(this.formats.default, 'default');
+  }
 }
 
 /**
@@ -312,23 +321,59 @@ Prompt.prototype.select = function(options, cb) {
   var formatter = typeof options.formatter === 'function'
     ? options.formatter : this.option.bind(this);
   var prompt = options.prompt || definitions.option.clone();
+
+  var defaultOption = options.default;
+  var defaultIndex = -1, def;
+
+  if(defaultOption !== undefined) {
+    if(typeof defaultOption === 'number') {
+      def = list[defaultOption];
+      if(def) {
+        defaultIndex = defaultOption;
+        defaultOption = def;
+      }
+    }else if(typeof defaultOption === 'string') {
+      defaultIndex = list.indexOf(defaultOption);
+      if(defaultIndex === -1) {
+        defaultOption = undefined;
+      }
+    }
+  }
+
+  if(defaultOption && defaultIndex > -1) {
+    prompt.required = false;
+  }
+
+  // print list
   for(i = 0;i < list.length;i++) {
-    s = formatter(i, list[i]);
+    s = formatter(i, list[i], defaultOption);
     map.push({display: i + 1, index: i, value: list[i]});
     output.write(s + EOL);
   }
+
+  // show prompt
   function show() {
     scope.exec(prompt, function(err, res) {
       if(err) return cb(err);
       var int = parseInt(res)
         , val = !isNaN(int) ? map[--int] : null
         , invalid = isNaN(int) || !val;
+
+      if(!res && defaultOption && defaultIndex > -1) {
+        val = map[defaultIndex];
+        if(val) {
+          int = defaultIndex;
+          invalid = false;
+        }
+      }
+
       if(validate && invalid) {
         scope.emit('invalid', res, int, options, scope);
       }
       if(options.repeat || prompt.repeat && (validate && invalid)) {
         return show();
       }
+
       if(!invalid) cb(err, val, int, res);
     });
   }
