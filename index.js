@@ -482,6 +482,7 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
       readline.line = ln;
       rl.moveCursor(readline.input, ln.length, -1);
       readline.cursor = ln.length;
+      readline._refreshLine();
       return lines.pop();
     }
     delLeft.call(readline);
@@ -492,15 +493,29 @@ Prompt.prototype.multiline = function(options, cb, lines, raw, vpos) {
   var next = readline._historyNext;
   readline._historyPrev = function() {
     if(vpos === 0) return;
-    rl.moveCursor(readline.input, 0, -1);
-    vpos--;
+    var cl = readline.line;
+    var nl = lines[--vpos] || line || '';
+    var x = 0;
+    if(nl.length < cl.length) {
+      x = -(cl.length - nl.length);
+    }
+    rl.moveCursor(readline.input, x, -1);
+    readline.line = nl;
+    //readline._moveCursor(x);
   }
 
   readline._historyNext = function() {
-    //console.dir(lines.length);
     if(!lines.length || vpos >= lines.length) return;
-    rl.moveCursor(readline.input, 0, 1);
-    vpos++;
+    var cl = readline.line;
+    var nl = lines[++vpos] || line || '';
+    var x = 0;
+    if(nl.length > cl.length) {
+      x = (nl.length - cl.length);
+    }
+    rl.moveCursor(readline.input, x, 1);
+    readline.line = nl;
+    //readline._refreshLine();
+    //readline._moveCursor(0);
   }
 
   input.on('keypress', onkeypress);
