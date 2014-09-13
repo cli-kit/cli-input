@@ -21,7 +21,10 @@
     "user",
     "input",
     "readline",
-    "prompt"
+    "prompt",
+    "read",
+    "interactive",
+    "stdin"
   ],
   "dependencies": {
     "async": "^0.9.0",
