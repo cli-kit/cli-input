@@ -373,6 +373,7 @@ Prompt.prototype.select = function(options, cb) {
     scope.exec(prompt, function(err, res) {
       if(err) return cb(err);
       var int = parseInt(res)
+        , oint = int
         , val = !isNaN(int) ? map[--int] : null
         , invalid = isNaN(int) || !val;
 
@@ -385,12 +386,11 @@ Prompt.prototype.select = function(options, cb) {
       }
 
       if(validate && invalid) {
-        scope.emit('invalid', res, int, options, scope);
+        scope.emit('invalid', res, oint, options, scope);
       }
       if(options.repeat || prompt.repeat && (validate && invalid)) {
         return show();
       }
-
       if(!invalid) cb(err, val, int, res);
     });
   }
