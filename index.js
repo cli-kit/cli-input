@@ -475,12 +475,9 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
   readline._deleteLeft = function() {
     var ln = lines[vpos];
 
-    //console.dir(ln);
-
     // backspace at beginning of line
     if(!readline.line && vpos && !ln) {
       if(ln === undefined) ln = lines[vpos-1];
-      //console.log('popping line');
       if(ln !== undefined) {
         --vpos;
         readline.line = ln;
@@ -519,14 +516,13 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
     if(vpos === 0) return;
     var cl = readline.line;
     var nl = lines[--vpos] || line || '';
-    var x = 0;
-    if(nl.length < cl.length) {
-      x = -(cl.length - nl.length);
+    var x = 0, pos = readline.cursor;
+    if(nl.length < pos) {
+      x = nl.length - pos;
     }
-    rl.moveCursor(readline.input, 0, -1);
+    rl.moveCursor(readline.input, x, -1);
     readline.line = nl;
-    var dx = readline.cursor + (nl.length - cl.length);
-    readline._moveCursor(dx);
+    readline.cursor = pos + x;
   }
 
   readline._historyNext = function() {
@@ -534,16 +530,11 @@ Prompt.prototype.multiline = function(options, cb, lines, vpos) {
     var cl = readline.line;
     var nl = lines[++vpos] || line || '';
     var x = 0, pos = readline.cursor;
-    if(nl.length < cl.length) {
-      //console.log('newline is less');
-      x = -(pos - (cl.length - nl.length));
+    if(nl.length < pos) {
+      x = nl.length - pos;
     }
-    //console.dir(x);
-    rl.moveCursor(readline.input, 0, 1);
+    rl.moveCursor(readline.input, x, 1);
     readline.line = nl;
-    //console.dir(x);
-    //var dx = readline.cursor + x;
-    readline._moveCursor(x);
   }
 
   input.on('keypress', onkeypress);
