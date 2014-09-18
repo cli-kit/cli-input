@@ -50,7 +50,7 @@ var Prompt = function(options, rl) {
 
   this.name = options.name || path.basename(process.argv[1]);
   this.fmt = options.format ||
-    ':name :delimiter :location :status :message :default';
+    ':name :delimiter :health :location :status :message :default';
 
   options.validator = options.validator !== undefined
     ? options.validator : {};
