@@ -622,7 +622,7 @@ Prompt.prototype.exec = function(options, cb) {
     //console.log('emitting value %j', options.key);
     //console.log('emitting value %s', cb);
 
-    if(options.history === false) {
+    if(options.history === false && rl.history) {
       rl.history.shift();
     }
 
