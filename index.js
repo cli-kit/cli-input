@@ -237,6 +237,10 @@ Prompt.prototype.pause = function() {
   this.emit('pause', this);
 }
 
+Prompt.prototype.isPaused = function() {
+  return this._paused;
+}
+
 Prompt.prototype.resume = function(options, cb) {
   if(!this._paused) return;
   var scope = this;
