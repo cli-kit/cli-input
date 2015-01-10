@@ -22,7 +22,10 @@ var types = {
   password: 'password'
 }
 
-var Prompt = function(options, rl) {
+/**
+ *  Create a prompt.
+ */
+function Prompt(options, rl) {
   options = options || {};
 
   this.rl = rl || {};
@@ -232,16 +235,34 @@ Prompt.prototype.getDefaultPrompt = function() {
   }
 }
 
-Prompt.prototype.pause = function() {
+/**
+ *  Pause the prompt when running a set or in infinite mode
+ *  prevents the next call to run() from being executed until
+ *  resume() is called.
+ */
+Prompt.prototype.pause = function pause() {
   this._paused = true;
   this.emit('pause', this);
 }
 
-Prompt.prototype.isPaused = function() {
+/**
+ *  Determine if this prompt is paused.
+ */
+Prompt.prototype.isPaused = function isPaused() {
   return this._paused;
 }
 
-Prompt.prototype.resume = function(options, cb) {
+/**
+ *  Close the readline interface.
+ */
+Prompt.prototype.close = function close() {
+  this.readline.close();
+}
+
+/**
+ *  Resume a paused prompt.
+ */
+Prompt.prototype.resume = function resume(options, cb) {
   if(!this._paused) return;
   var scope = this;
   this._paused = false;
@@ -252,10 +273,16 @@ Prompt.prototype.resume = function(options, cb) {
   this.emit('resume', this);
 }
 
+/**
+ *  Display a prompt with the specified options.
+ */
 Prompt.prototype.prompt = function(options, cb) {
   this.exec(options, cb);
 }
 
+/**
+ *  Display a prompt from a set.
+ */
 Prompt.prototype.run = function(prompts, opts, cb) {
   if(typeof prompts === 'function') {
     cb = prompts;
