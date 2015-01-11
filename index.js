@@ -12,6 +12,8 @@ var EOL = require('os').EOL
   , definitions = sets.definitions
   , PromptDefinition = require('./lib/definition');
 
+function noop(){};
+
 var schema;
 try{
   schema = require('async-validate');
@@ -292,7 +294,7 @@ Prompt.prototype.run = function(prompts, opts, cb) {
     cb = opts;
     opts = null;
   }
-  cb = typeof cb === 'function' ? cb : function noop(){};
+  cb = typeof cb === 'function' ? cb : noop;
   opts = opts || {};
   var scope = this, options = this.options;
   prompts = prompts || [scope.getDefaultPrompt()];
@@ -314,6 +316,7 @@ Prompt.prototype.run = function(prompts, opts, cb) {
     var res = {list: result, map: map};
 
     function done() {
+      //console.dir('run complete');
       scope.emit('complete', res);
       cb(null, res);
       if((opts.infinite || scope.options.infinite) && !scope._paused) {
@@ -607,7 +610,7 @@ Prompt.prototype.exec = function(options, cb) {
   }
   options = options || {};
   options = this.merge(options);
-  cb = typeof cb === 'function' ? cb : function noop(){};
+  cb = typeof cb === 'function' ? cb : noop;
   var scope = this;
   var opts = {}, k;
   var trim = options.trim;
@@ -697,7 +700,11 @@ Prompt.prototype.exec = function(options, cb) {
       if(typeof val === 'string' && options.expand !== false) {
         val = val.split(/\s+/);
       }
+      //console.dir('emitting value with cb: ' + cb);
       scope.emit('value', val, options, scope);
+      if(scope.options.infinite && !scope._paused && cb === noop) {
+        return scope.exec(options, cb);
+      }
     }else{
       scope.emit(options.type, val, options, scope);
     }
