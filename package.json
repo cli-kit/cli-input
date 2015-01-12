@@ -31,7 +31,7 @@
     "cli-native": "~1.0.0",
     "cli-util": "~1.1.27",
     "touch": "0.0.3",
-    "ttycolor": "~0.8.13"
+    "ttycolor": "~0.8.14"
   },
   "devDependencies": {
     "chai": "~1.8.1",
