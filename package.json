@@ -30,15 +30,14 @@
     "async": "~0.9.0",
     "cli-native": "~1.0.0",
     "cli-util": "~1.1.27",
-    "touch": "0.0.3",
-    "ttycolor": "~0.8.14"
+    "touch": "0.0.3"
   },
   "devDependencies": {
     "chai": "~2.2.0",
     "istanbul": "~0.3.13",
     "mocha": "~2.2.4",
     "mute-stream": "0.0.4",
-    "ttycolor": "^0.8.10"
+    "ttycolor": "~0.8.14"
   },
   "engine": [
     "node >= 0.10.21"
