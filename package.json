@@ -34,9 +34,9 @@
     "ttycolor": "~0.8.14"
   },
   "devDependencies": {
-    "chai": "~1.8.1",
-    "istanbul": "~0.2.4",
-    "mocha": "~1.17.0",
+    "chai": "~2.2.0",
+    "istanbul": "~0.3.13",
+    "mocha": "~2.2.4",
     "mute-stream": "0.0.4",
     "ttycolor": "^0.8.10"
   },
