@@ -205,7 +205,7 @@ Prompt.prototype.format = function(options) {
   source.name = source.name || this.name;
   source.date = new Date();
   source.message = options.message;
-  source.delimiter = options.delimiter;
+  source.delimiter = options.delimiter || this.options.delimiter;
   source.default = options.default;
   return this.replace(options.format || this.fmt, source, options);
 }
