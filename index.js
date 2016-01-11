@@ -54,8 +54,8 @@ function Prompt(options, rl) {
   this.formats.option = this.formats.select || '%s) %s';
 
   this.name = options.name || path.basename(process.argv[1]);
-  this.fmt = options.format ||
-    ':name :delimiter :health :location :status :message :default';
+  this.fmt = (options.format === '' ? '' :
+    (options.format || ':name :delimiter :health :location :status :message :default'));
 
   options.validator = options.validator !== undefined
     ? options.validator : {};
