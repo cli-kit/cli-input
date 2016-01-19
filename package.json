@@ -41,7 +41,8 @@
   "scripts": {
     "readme": "mdp --force -v",
     "pretest": "rm -rfv ./target && mkdir -p ./target",
-    "test": "istanbul cover _mocha -- -u bdd --recursive --reporter list -A test/spec/"
+    "test": "mocha -u bdd --recursive --reporter list -A test/global test/spec",
+    "cover": "istanbul cover _mocha -- -u bdd --recursive --reporter list -A test/global test/spec"
   },
   "config": {},
   "mdp": {

@@ -717,9 +717,10 @@ Prompt.prototype.exec = function(options, cb) {
 
     // validate  on a schema assigned to the prompt
     if(schema && options.schema && options.key) {
-      var source = {}, descriptor = {}
+      var source = {}
+        , descriptor = {type: 'object', fields: {}}
       source[options.key] = value;
-      descriptor[options.key] = options.schema;
+      descriptor.fields[options.key] = options.schema;
       scope.validate(source, descriptor, function(errors, fields) {
         if(errors && errors.length) {
           if(options.repeat) {
