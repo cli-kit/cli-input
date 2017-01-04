@@ -17,6 +17,7 @@ function noop(){};
 var schema;
 try{
   schema = require('async-validate');
+  require('async-validate/plugin/all');
 }catch(e){}
 
 var types = {

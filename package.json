@@ -25,6 +25,7 @@
     "async": "~1.5.2",
     "cli-native": "~1.0.0",
     "cli-util": "~1.1.27",
+    "mute-stream": "0.0.7",
     "touch": "~1.0.0"
   },
   "devDependencies": {
@@ -32,7 +33,7 @@
     "chai": "~3.4.1",
     "istanbul": "~0.4.2",
     "mocha": "~2.3.4",
-    "mute-stream": "0.0.5",
+    "mute-stream": "~0.0.7",
     "ttycolor": "~0.9.0"
   },
   "engine": [
